@@ -1,0 +1,115 @@
+using System.ComponentModel;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows.Input;
+using PhotoFileFilter.Services;
+using PhotoFileFilter.ViewModels;
+
+namespace PhotoFileFilter;
+
+public partial class MainWindow : Window
+{
+    private DropHighlightAdorner? _dropHighlight;
+    public event EventHandler? ReviewRequested;
+    public MainWindow()
+    {
+        InitializeComponent(); DataContext = new MainViewModel(new DialogService(), new SettingsService());
+        MinWidth = Math.Min(MinWidth, SystemParameters.WorkArea.Width);
+        MinHeight = Math.Min(MinHeight, SystemParameters.WorkArea.Height);
+        Width = Math.Min(Width, SystemParameters.WorkArea.Width);
+        Height = Math.Min(Height, SystemParameters.WorkArea.Height);
+        Loaded += (_, _) =>
+        {
+            if (Owner is ReviewWindow)
+            {
+                ReviewNavigationButton.Content = "Back to Review";
+                ReviewNavigationButton.ToolTip = "Close TXT Filter and return to the review catalog";
+            }
+        };
+    }
+    private void OnFileDragOver(object sender, DragEventArgs e)
+    {
+        e.Effects = DragDropEffects.None;
+        if (DataContext is MainViewModel { Busy: false } && e.Data.GetData(DataFormats.FileDrop) is string[] paths && sender is FrameworkElement { Tag: string target })
+            if (paths.Any(p => target == "txt" ? System.IO.File.Exists(p) && string.Equals(System.IO.Path.GetExtension(p), ".txt", StringComparison.OrdinalIgnoreCase) : System.IO.Directory.Exists(p)))
+                e.Effects = DragDropEffects.Copy;
+        ClearDropHighlight();
+        if (e.Effects == DragDropEffects.Copy && sender is FrameworkElement element && AdornerLayer.GetAdornerLayer(element) is { } layer)
+        {
+            _dropHighlight = new DropHighlightAdorner(element);
+            layer.Add(_dropHighlight);
+        }
+        e.Handled = true;
+    }
+    private void OnFileDrop(object sender, DragEventArgs e)
+    {
+        ClearDropHighlight();
+        if (DataContext is MainViewModel vm && e.Data.GetData(DataFormats.FileDrop) is string[] paths && sender is FrameworkElement { Tag: string target })
+            vm.ApplyDroppedPaths(paths, target);
+        e.Handled = true;
+    }
+    private void OnFileDragLeave(object sender, DragEventArgs e) => ClearDropHighlight();
+    private void ClearDropHighlight()
+    {
+        if (_dropHighlight != null) AdornerLayer.GetAdornerLayer(_dropHighlight.AdornedElement)?.Remove(_dropHighlight);
+        _dropHighlight = null;
+    }
+    private void OnResultsRightClick(object sender, MouseButtonEventArgs e)
+    {
+        if (ItemsControl.ContainerFromElement((DataGrid)sender, e.OriginalSource as DependencyObject) is DataGridRow row) row.IsSelected = true;
+        else if (DataContext is MainViewModel vm) vm.SelectedFile = null;
+    }
+    private void OnShowOutput(object sender, RoutedEventArgs e) => OutputSettings.BringIntoView();
+    private void OnHelp(object sender, RoutedEventArgs e) => ShowHelp();
+    private void OnMainKeyDown(object sender, KeyEventArgs e) { if (e.Key == Key.F1) { ShowHelp(); e.Handled = true; } }
+    private void ShowHelp()
+    {
+        if (Application.Current.MainWindow is ReviewWindow review) review.ShowHelpPopup();
+        else MessageBox.Show(this, "F1: Help · F5: Scan photos · Ctrl+O: Choose TXT · Esc: Cancel operation\n\nOpen Import & Review for the complete workflow and keyboard shortcuts.", "QiQi Studio Help", MessageBoxButton.OK, MessageBoxImage.Information);
+    }
+    private void OnOpenReview(object sender, RoutedEventArgs e)
+    {
+        if (ReviewRequested != null)
+        {
+            ReviewRequested(this, EventArgs.Empty);
+            return;
+        }
+        if (Owner is ReviewWindow review)
+        {
+            Hide();
+            review.Activate();
+            return;
+        }
+        var source = (DataContext as MainViewModel)?.SourceFolder;
+        new ReviewWindow(source) { Owner = this }.ShowDialog();
+    }
+    public FrameworkElement TakeContentForEmbedding()
+    {
+        ReviewNavigationButton.Content = "←  Back to Review";
+        ReviewNavigationButton.ToolTip = "Return to the Import & Review workspace";
+        ThemeToggle.Visibility = Visibility.Collapsed;
+        var content = (FrameworkElement)Content;
+        content.DataContext = DataContext;
+        Content = null;
+        return content;
+    }
+    private void OnResultsDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if (ItemsControl.ContainerFromElement((DataGrid)sender, e.OriginalSource as DependencyObject) is DataGridRow && DataContext is MainViewModel vm && vm.PreviewCommand.CanExecute(null)) vm.PreviewCommand.Execute(null);
+    }
+    private void OnResultsKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Space && DataContext is MainViewModel vm && vm.PreviewCommand.CanExecute(null)) { e.Handled = true; vm.PreviewCommand.Execute(null); }
+    }
+    protected override void OnClosing(CancelEventArgs e)
+    {
+        if (DataContext is MainViewModel { Busy: true })
+        {
+            e.Cancel = true;
+            MessageBox.Show(this, "An operation is still running. Select Cancel and wait for it to stop before closing the app.", "Photo File Filter", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        else if (DataContext is MainViewModel vm) vm.SaveSettings();
+        base.OnClosing(e);
+    }
+}
