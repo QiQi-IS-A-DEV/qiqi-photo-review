@@ -57,6 +57,22 @@ public partial class ReviewWindow : Window
             if (e.Key == Key.Escape || MatchesShortcut(e, _viewModel.HelpShortcut)) HideHelpPopup();
             e.Handled = true; return;
         }
+        var control = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
+        if (control && e.Key == Key.D1)
+        {
+            if (FilterHost.Visibility == Visibility.Visible) ShowReviewScreen();
+            e.Handled = true; return;
+        }
+        if (control && e.Key == Key.D2)
+        {
+            if (FilterHost.Visibility != Visibility.Visible) ShowFilterScreen();
+            e.Handled = true; return;
+        }
+        if (FilterHost.Visibility == Visibility.Visible && (e.Key == Key.F1 || MatchesShortcut(e, _viewModel.HelpShortcut)))
+        {
+            _filterWindow?.ShowHelpPopup();
+            e.Handled = true; return;
+        }
         if (MatchesShortcut(e, _viewModel.HelpShortcut)) { ShowHelpPopup(); e.Handled = true; return; }
         if (FilterHost.Visibility != Visibility.Visible && MatchesShortcut(e, _viewModel.ZenShortcut))
         { ToggleZenMode(); e.Handled = true; return; }
@@ -71,7 +87,6 @@ public partial class ReviewWindow : Window
             return;
         }
         if (e.OriginalSource is TextBox or ComboBox) return;
-        var control = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
         if (MatchesShortcut(e, _viewModel.UndoShortcut)) { _viewModel.Undo(); e.Handled = true; return; }
         if (control && e.Key == Key.OemOpenBrackets) { _viewModel.Rotate(ReviewTargets(), -90); e.Handled = true; return; }
         if (control && e.Key == Key.OemCloseBrackets) { _viewModel.Rotate(ReviewTargets(), 90); e.Handled = true; return; }

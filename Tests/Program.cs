@@ -292,10 +292,25 @@ internal static class Program
         vm.DarkMode = true; vm.SaveSettings();
         Check(((SolidColorBrush)Application.Current.Resources["Surface"]).Color != Colors.White, "Dark mode changes application surface resources");
         vm.DarkMode = false;
+        var filterSettingsPath = Path.Combine(_root, "filter-session-settings.json");
+        var filterSession = new MainViewModel(dialogs, new SettingsService(filterSettingsPath))
+        {
+            TxtPath = list,
+            SourceFolder = source,
+            OutputFolder = Path.Combine(_root, "old-output"),
+            SearchText = "IMG"
+        };
+        filterSession.ClearSession();
+        var clearedFilterSettings = new SettingsService(filterSettingsPath).Load();
+        Check(filterSession.TxtPath.Length == 0 && filterSession.SourceFolder.Length == 0 && filterSession.OutputFolder.Length == 0 && filterSession.HasNoResults && clearedFilterSettings?.TxtPath.Length == 0 && clearedFilterSettings.SourceFolder.Length == 0, "Clearing the TXT Filter session removes saved paths and current results");
         var screenshot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../artifacts/screenshots"));
         Directory.CreateDirectory(screenshot);
         var window = new MainWindow { DataContext = vm, Width = 1240, Height = 1080 };
         Check(window.Icon != null && Application.GetResourceStream(new Uri("pack://application:,,,/PhotoFileFilter;component/Assets/qiqistudio_nobackground.png")) != null, "QiQi Studio icon and original logo are embedded resources");
+        typeof(MainWindow).GetMethod("ShowHelp", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.Invoke(window, null);
+        Check(((FrameworkElement)window.FindName("FilterHelpOverlay")).Visibility == Visibility.Visible, "TXT Filter has its own in-window workflow guide");
+        await Render(window, Path.Combine(screenshot, "filter-help.png"));
+        typeof(MainWindow).GetMethod("OnCloseFilterHelp", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.Invoke(window, [window, new RoutedEventArgs()]);
         await Render(window, Path.Combine(screenshot, "results.png"));
         window.Width = 1280; window.Height = 940;
         await Render(window, Path.Combine(screenshot, "default.png"));
@@ -350,6 +365,11 @@ internal static class Program
         var embeddedVm = (MainViewModel)embeddedFilter.DataContext;
         Check(((FrameworkElement)reviewWindow.FindName("FilterHost")).Visibility == Visibility.Visible && ((FrameworkElement)reviewWindow.FindName("ReviewScreen")).Visibility == Visibility.Collapsed, "TXT filter switches inside the same application window");
         Check(File.Exists(embeddedVm.TxtPath) && embeddedVm.Extensions.Where(option => option.Selected).All(option => option.Name is "ARW" or "CR2" or "CR3" or "NEF" or "RAF" or "ORF" or "RW2" or "DNG"), "Sending review names fills the TXT input and selects the RAW preset");
+        var embeddedFilterWindow = embeddedFilter.Tag as MainWindow ?? throw new Exception("Embedded TXT Filter owner was not retained.");
+        embeddedFilterWindow.ShowHelpPopup();
+        Check(((FrameworkElement)embeddedFilterWindow.FindName("FilterHelpOverlay")).Visibility == Visibility.Visible, "TXT Filter guide works inside the Review window");
+        await Render(reviewWindow, Path.Combine(screenshot, "filter-help-embedded.png"));
+        embeddedFilterWindow.HideHelpPopup();
         await Render(reviewWindow, Path.Combine(screenshot, "filter-embedded.png"));
         typeof(ReviewWindow).GetMethod("ShowReviewScreen", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.Invoke(reviewWindow, null);
         Check(((FrameworkElement)reviewWindow.FindName("ReviewScreen")).Visibility == Visibility.Visible, "Review screen restores without opening another window");

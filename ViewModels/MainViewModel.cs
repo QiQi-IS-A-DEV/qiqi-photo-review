@@ -198,6 +198,41 @@ public sealed class MainViewModel : ObservableObject
         Alongside = Alongside, Subfolder = Subfolder, Policy = Policy, DarkMode = DarkMode, CompletionSound = CompletionSound, Extensions = Extensions.Where(e => e.Selected).Select(e => e.Name).ToArray()
     });
 
+    public void ClearSession()
+    {
+        if (Busy) return;
+        TxtPath = "";
+        SourceFolder = "";
+        OutputFolder = "";
+        SubfolderName = "Selected";
+        Comma = true;
+        Space = true;
+        NewLine = true;
+        IgnoreExtension = true;
+        Recursive = true;
+        Alongside = true;
+        Subfolder = true;
+        Policy = 0;
+        SearchText = "";
+        _scan = null;
+        _copy = null;
+        _lastDestination = null;
+        SelectedFile = null;
+        _duplicates = 0;
+        Progress = 0;
+        CurrentFile = "";
+        Status = "Ready";
+        Detail = "Choose a TXT filename list and a source photo folder to begin.";
+        foreach (var extension in Extensions)
+            extension.Selected = extension.Name is "JPG" or "JPEG" or "ARW" or "CR2" or "CR3";
+        Notify(nameof(DestinationPreview));
+        Notify(nameof(TxtFileName));
+        Notify(nameof(TxtFileHint));
+        Notify(nameof(SourceHint));
+        NotifyResults();
+        SaveSettings();
+    }
+
     private void RestoreSettings(UserSettings saved)
     {
         TxtPath = saved.TxtPath ?? ""; SourceFolder = saved.SourceFolder ?? ""; OutputFolder = saved.OutputFolder ?? "";

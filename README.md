@@ -49,12 +49,14 @@ QiQi Photo Review tập trung vào quy trình thực tế sau buổi chụp:
 ### Lọc RAW theo danh sách TXT
 
 - Nhận danh sách tên ảnh từ file `.txt` hoặc trực tiếp từ màn hình Review.
+- Có popup hướng dẫn riêng, giải thích tuần tự cách chọn TXT, thiết lập quy tắc khớp tên, quét và sao chép.
 - Có thể bỏ phần mở rộng để tên JPG khớp với file RAW cùng tên.
 - Hỗ trợ tìm trong thư mục con và chọn nhiều loại file cùng lúc.
 - Hiển thị file tìm thấy, tên không tìm thấy và các lỗi trong lúc quét.
 - Cho phép bỏ chọn từng file trước khi sao chép.
 - Ba cách xử lý khi trùng tên: tự đổi tên, bỏ qua hoặc thay thế file đích.
 - Xuất báo cáo TXT sau khi đối chiếu và sao chép.
+- Nút **Clear session** trên header xóa đường dẫn và kết quả hiện tại nhưng không thay đổi file TXT hoặc ảnh gốc.
 
 ## Phím tắt Review
 
@@ -74,6 +76,7 @@ QiQi Photo Review tập trung vào quy trình thực tế sau buổi chụp:
 | `Ctrl + Z` | Hoàn tác thao tác review gần nhất |
 | `Tab` | Ẩn / hiện hai bảng bên |
 | `F1` | Mở hướng dẫn sử dụng |
+| `Ctrl + 1` / `Ctrl + 2` | Chuyển giữa Import & Review và TXT Filter |
 
 Các phím tắt chính có thể được thay đổi trong **Settings** của màn hình Review.
 
@@ -97,6 +100,16 @@ Việc tìm và sao chép file RAW không cần giải mã nội dung ảnh. Kh�
 
 Bản publish `win-x64` là self-contained, đã kèm .NET runtime và không yêu cầu cài .NET riêng trên máy người dùng.
 
+## Gửi app cho người dùng thử
+
+Người dùng thông thường không cần Git, Visual Studio hoặc .NET. Hãy gửi file ZIP portable trong `artifacts/distribution`, sau đó hướng dẫn họ:
+
+1. Giải nén toàn bộ file ZIP.
+2. Nhấp đúp `PhotoFileFilter.exe` để mở ứng dụng.
+3. Nếu Windows SmartScreen xuất hiện do ứng dụng chưa ký số, chọn **More info** rồi **Run anyway**.
+
+File `.txt` chỉ là danh sách tên ảnh dùng làm đầu vào cho màn hình TXT Filter, không phải file chạy ứng dụng.
+
 ## Chạy từ mã nguồn
 
 Mở `PhotoFileFilter.sln` bằng Visual Studio, chọn `PhotoFileFilter` làm Startup Project và nhấn `F5`.
@@ -114,7 +127,7 @@ dotnet build PhotoFileFilter.sln -c Release
 dotnet run --project Tests/PhotoFileFilter.Tests.csproj -c Release
 ```
 
-Bộ kiểm thử hiện gồm **120 kiểm tra**, bao phủ parser TXT, quét thư mục, bảo vệ ảnh gốc, chính sách trùng tên, session Review, rating, nhãn màu, xoay, zoom, histogram và bố cục WPF.
+Bộ kiểm thử hiện gồm **127 kiểm tra**, bao phủ parser TXT, quét thư mục, bảo vệ ảnh gốc, chính sách trùng tên, session Review và TXT Filter, rating, nhãn màu, xoay, zoom, histogram và bố cục WPF.
 
 ## Đóng gói bản portable
 
@@ -174,12 +187,14 @@ publish.ps1            Script đóng gói portable cho Windows x64
 
 ## Phiên bản hiện tại
 
-**1.17.0**
+**1.18.0**
 
+- Bổ sung hướng dẫn riêng cho màn hình TXT Filter.
+- Thêm nút xóa phiên TXT Filter, gồm đường dẫn đã lưu và kết quả quét hiện tại.
+- Thêm `Ctrl+1` và `Ctrl+2` để chuyển workspace, đồng thời làm rõ trạng thái workspace trên header.
 - Bổ sung zoom theo con trỏ và 1-click zoom với mức phóng đại tùy chỉnh.
 - Đảo vị trí header: điều khiển hỗ trợ bên trái, thao tác chính bên phải.
-- Sắp xếp lại header: thao tác chính ở bên trái, điều khiển hỗ trợ ở bên phải.
 - Giao diện ứng dụng sử dụng tiếng Anh thống nhất.
-- Popup hướng dẫn mô tả đầy đủ quy trình JPG → RAW.
+- Hai popup hướng dẫn mô tả riêng quy trình Review và quy trình lọc TXT.
 - Cải thiện cách xuống dòng, tooltip và khả năng hiển thị văn bản trong cửa sổ nhỏ.
 - Hỗ trợ tùy chỉnh phím tắt và cấu hình xem ảnh.

@@ -62,11 +62,39 @@ public partial class MainWindow : Window
     }
     private void OnShowOutput(object sender, RoutedEventArgs e) => OutputSettings.BringIntoView();
     private void OnHelp(object sender, RoutedEventArgs e) => ShowHelp();
-    private void OnMainKeyDown(object sender, KeyEventArgs e) { if (e.Key == Key.F1) { ShowHelp(); e.Handled = true; } }
+    private void OnCloseFilterHelp(object sender, RoutedEventArgs e) => FilterHelpOverlay.Visibility = Visibility.Collapsed;
+    private void OnMainKeyDown(object sender, KeyEventArgs e)
+    {
+        if (FilterHelpOverlay.Visibility == Visibility.Visible && (e.Key == Key.F1 || e.Key == Key.Escape))
+        {
+            FilterHelpOverlay.Visibility = Visibility.Collapsed;
+            e.Handled = true;
+        }
+        else if (e.Key == Key.F1)
+        {
+            ShowHelp();
+            e.Handled = true;
+        }
+        else if (e.Key == Key.D1 && Keyboard.Modifiers.HasFlag(ModifierKeys.Control))
+        {
+            OnOpenReview(this, new RoutedEventArgs());
+            e.Handled = true;
+        }
+    }
     private void ShowHelp()
     {
-        if (Application.Current.MainWindow is ReviewWindow review) review.ShowHelpPopup();
-        else MessageBox.Show(this, "F1: Help · F5: Scan photos · Ctrl+O: Choose TXT · Esc: Cancel operation\n\nOpen Import & Review for the complete workflow and keyboard shortcuts.", "QiQi Studio Help", MessageBoxButton.OK, MessageBoxImage.Information);
+        FilterHelpOverlay.Visibility = FilterHelpOverlay.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
+    }
+    public void ShowHelpPopup() => FilterHelpOverlay.Visibility = Visibility.Visible;
+    public void HideHelpPopup() => FilterHelpOverlay.Visibility = Visibility.Collapsed;
+    private void OnClearFilterSession(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainViewModel { Busy: false } vm) return;
+        var owner = Window.GetWindow(ReviewNavigationButton) ?? Application.Current.MainWindow;
+        var confirmed = MessageBox.Show(owner,
+            "Clear the current TXT Filter session?\n\nThe TXT list, source and destination paths, and scan results will be removed from the app. Original photos and TXT files will not be changed.",
+            "Clear TXT Filter Session", MessageBoxButton.OKCancel, MessageBoxImage.Question, MessageBoxResult.Cancel);
+        if (confirmed == MessageBoxResult.OK) vm.ClearSession();
     }
     private void OnOpenReview(object sender, RoutedEventArgs e)
     {
@@ -86,11 +114,12 @@ public partial class MainWindow : Window
     }
     public FrameworkElement TakeContentForEmbedding()
     {
-        ReviewNavigationButton.Content = "←  Back to Review";
+        ReviewNavigationButton.Content = "←  Back to Review  ·  Ctrl+1";
         ReviewNavigationButton.ToolTip = "Return to the Import & Review workspace";
         ThemeToggle.Visibility = Visibility.Collapsed;
         var content = (FrameworkElement)Content;
         content.DataContext = DataContext;
+        content.Tag = this;
         Content = null;
         return content;
     }

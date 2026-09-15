@@ -22,9 +22,10 @@
             <Grid>
                 <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                 <Border Background="#FFFFFF" CornerRadius="10" Width="46" Height="46" Margin="0,0,14,0"><Image Source="Assets/qiqistudio_nobackground.png" RenderOptions.BitmapScalingMode="HighQuality" AutomationProperties.Name="Logo QiQi Studio"/></Border>
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center"><Button Content="Help" Click="OnHelp" Margin="0,0,10,0" Padding="12,8" ToolTip="Open the user guide (F1)"/><CheckBox x:Name="ThemeToggle" Content="Dark theme" IsChecked="{Binding DarkMode}" Foreground="{DynamicResource CBDE2CE}" FontSize="11" Margin="0,0,18,0"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Filter Photos by TXT List" Foreground="White" FontWeight="SemiBold" FontSize="22"/><TextBlock Text="QIQI STUDIO  /  1.17" Foreground="{DynamicResource CACBFC3}" FontSize="10"/></StackPanel></StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center"><Button Content="Help" Click="OnHelp" Margin="0,0,8,0" Padding="12,8" ToolTip="Open the TXT Filter guide (F1)"/><Button Content="Clear session" Click="OnClearFilterSession" Margin="0,0,10,0" Padding="12,8" ToolTip="Clear saved paths, the TXT list, and current results"/><CheckBox x:Name="ThemeToggle" Content="Dark theme" IsChecked="{Binding DarkMode}" Foreground="{DynamicResource CBDE2CE}" FontSize="11" Margin="0,0,18,0"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Filter Photos by TXT List" Foreground="White" FontWeight="SemiBold" FontSize="22"/><TextBlock Text="QIQI STUDIO  /  1.18" Foreground="{DynamicResource CACBFC3}" FontSize="10"/></StackPanel></StackPanel>
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button x:Name="ReviewNavigationButton" Content="Import &amp; Review" Click="OnOpenReview" Margin="0,0,12,0" Padding="14,8" ToolTip="Review and rate photos with keyboard shortcuts"/>
+                    <Button x:Name="ReviewNavigationButton" Content="Import &amp; Review  ·  Ctrl+1" Click="OnOpenReview" Margin="0,0,7,0" Padding="14,8" ToolTip="Switch to the Import &amp; Review workspace (Ctrl+1)"/>
+                    <Border Background="#287CAD" BorderBrush="#3B9BD6" BorderThickness="1" CornerRadius="4" Padding="14,8" Margin="0,0,12,0"><TextBlock Text="TXT Filter  ·  Ctrl+2" Foreground="White" FontWeight="SemiBold" TextWrapping="NoWrap"/></Border>
                     <Border Background="{DynamicResource C26443F}" CornerRadius="12" Padding="12,6"><TextBlock Text="✓ Originals stay untouched" Foreground="{DynamicResource CBDE2CE}" FontSize="11"/></Border>
                 </StackPanel>
             </Grid>
@@ -221,6 +222,40 @@
                 </StackPanel>
             </Grid>
         </Border>
+
+        <Grid x:Name="FilterHelpOverlay" Grid.RowSpan="3" Panel.ZIndex="100" Background="#A6000000" Visibility="Collapsed">
+            <Border Width="760" MaxHeight="720" Margin="24" Padding="24" CornerRadius="12" Background="{DynamicResource Surface}" BorderBrush="{DynamicResource Line}" BorderThickness="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Grid>
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                    <DockPanel Margin="0,0,0,16">
+                        <TextBlock DockPanel.Dock="Right" Text="F1" Foreground="{DynamicResource C5D8673}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <StackPanel><TextBlock Text="QiQi Studio TXT Filter Guide" FontSize="22" FontWeight="SemiBold"/><TextBlock Text="Match a filename list with JPG or RAW originals, then copy the files into one folder." Style="{StaticResource Caption}" Margin="0,4,0,0"/></StackPanel>
+                    </DockPanel>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <StackPanel Margin="0,0,12,0">
+                            <TextBlock Text="WORKFLOW" Style="{StaticResource Eyebrow}" Foreground="{DynamicResource C3F8A73}" Margin="0,0,0,9"/>
+                            <TextBlock TextWrapping="Wrap" LineHeight="21"><Run FontWeight="SemiBold" Text="1. Add the filename list. "/><Run Text="Choose a TXT file or drop it onto Filename List. The list can contain names such as IMG_1001 or IMG_1002.JPG."/></TextBlock>
+                            <TextBlock TextWrapping="Wrap" LineHeight="21" Margin="0,8,0,0"><Run FontWeight="SemiBold" Text="2. Set the matching rules. "/><Run Text="Choose how names are separated. Keep Ignore file extensions enabled when a JPG list should find RAW files with the same base name."/></TextBlock>
+                            <TextBlock TextWrapping="Wrap" LineHeight="21" Margin="0,8,0,0"><Run FontWeight="SemiBold" Text="3. Choose the source photos. "/><Run Text="Select JPG, RAW, All, or individual file types. Choose the folder that contains the originals and enable Search subfolders when needed."/></TextBlock>
+                            <TextBlock TextWrapping="Wrap" LineHeight="21" Margin="0,8,0,0"><Run FontWeight="SemiBold" Text="4. Scan and check the results. "/><Run Text="Select Scan Photos or press F5. Review Files Found, Not Found, and Notes / Errors. Clear the COPY check box for any file you do not want to copy."/></TextBlock>
+                            <TextBlock TextWrapping="Wrap" LineHeight="21" Margin="0,8,0,0"><Run FontWeight="SemiBold" Text="5. Copy the selected files. "/><Run Text="Choose the destination and the action for duplicate filenames, then select Copy Photos and confirm the summary."/></TextBlock>
+
+                            <Border BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0" Margin="0,16,0,14"/>
+                            <TextBlock Text="MATCHING NOTES" Style="{StaticResource Eyebrow}" Foreground="{DynamicResource C3F8A73}" Margin="0,0,0,8"/>
+                            <TextBlock Text="• Matching is not case-sensitive.&#x0a;• With extensions ignored, IMG_1001.JPG can match IMG_1001.CR3 or IMG_1001.ARW.&#x0a;• The TXT file should contain filenames, not full folder paths.&#x0a;• QiQi Studio copies selected files and never modifies the originals." TextWrapping="Wrap" LineHeight="21"/>
+
+                            <TextBlock Text="SHORTCUTS" Style="{StaticResource Eyebrow}" Foreground="{DynamicResource C3F8A73}" Margin="0,16,0,8"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="110"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                <TextBlock FontFamily="Consolas" Text="Ctrl+1 / Ctrl+2&#x0a;Ctrl+O&#x0a;F5&#x0a;Space&#x0a;Esc / F1" LineHeight="21"/>
+                                <TextBlock Grid.Column="1" Text="Switch between Review and TXT Filter&#x0a;Choose a TXT list&#x0a;Scan the source folder&#x0a;Preview the selected result&#x0a;Cancel an operation / close this guide" LineHeight="21"/>
+                            </Grid>
+                        </StackPanel>
+                    </ScrollViewer>
+                    <Button Grid.Row="2" Content="Close Guide" Click="OnCloseFilterHelp" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Right" Margin="0,18,0,0" Padding="18,9"/>
+                </Grid>
+            </Border>
+        </Grid>
     </Grid>
 </Window>
 
