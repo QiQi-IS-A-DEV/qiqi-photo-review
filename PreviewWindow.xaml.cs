@@ -12,6 +12,7 @@ public partial class PreviewWindow : Window
     public PreviewWindow(PhotoFile file)
     {
         InitializeComponent(); _file = file; FileTitle.Text = file.Name;
+        LanguageService.Apply(this);
         Width = Math.Min(Width, SystemParameters.WorkArea.Width);
         Height = Math.Min(Height, SystemParameters.WorkArea.Height);
         Loaded += async (_, _) =>
@@ -24,7 +25,7 @@ public partial class PreviewWindow : Window
                 PreviewImage.Source = result.Image; PreviewDescription.Text = result.Description;
             }
             catch (OperationCanceledException) { }
-            catch (Exception e) { if (!token.IsCancellationRequested) PreviewDescription.Text = "Could not load the photo: " + e.Message; }
+            catch (Exception e) { if (!token.IsCancellationRequested) PreviewDescription.Text = LanguageService.IsVietnamese ? "Không thể tải ảnh: " + e.Message : "Could not load the photo: " + e.Message; }
         };
         Closed += (_, _) => { _cancellation.Cancel(); _cancellation.Dispose(); };
     }

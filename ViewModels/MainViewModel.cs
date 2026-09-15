@@ -27,7 +27,7 @@ public sealed class MainViewModel : ObservableObject
     private string _searchText = "";
     private IReadOnlyList<PhotoFile> _visibleFiles = [];
     private IReadOnlyList<string> _visibleMissing = [];
-    private string _status = "Ready", _detail = "Choose a TXT filename list and a source photo folder to begin.", _currentFile = "";
+    private string _status = LanguageService.Text("Ready"), _detail = LanguageService.Text("Choose a TXT filename list and a source photo folder to begin."), _currentFile = "";
 
     public MainViewModel(IDialogService dialogs, SettingsService? settings = null)
     {
@@ -81,7 +81,7 @@ public sealed class MainViewModel : ObservableObject
     public RelayCommand ToggleIncludedCommand { get; }
     public RelayCommand IncludeAllCommand { get; }
     public PhotoFile? SelectedFile { get => _selectedFile; set { if (Set(ref _selectedFile, value)) { RefreshCommands(); Notify(nameof(ToggleIncludedLabel)); } } }
-    public string ToggleIncludedLabel => SelectedFile?.IncludeInCopy == true ? "Exclude from copy" : "Include in copy";
+    public string ToggleIncludedLabel => LanguageService.Text(SelectedFile?.IncludeInCopy == true ? "Exclude from copy" : "Include in copy");
     public int CopyCount => Files.Count(f => f.IncludeInCopy);
     public bool DarkMode { get => _darkMode; set { if (Set(ref _darkMode, value)) { ThemeService.Apply(value); SaveSettings(); } } }
     public bool CompletionSound { get => _completionSound; set => Set(ref _completionSound, value); }
@@ -89,12 +89,12 @@ public sealed class MainViewModel : ObservableObject
     public string SearchText { get => _searchText; set { if (Set(ref _searchText, value)) RefreshFilter(); } }
     public IReadOnlyList<PhotoFile> VisibleFiles => _visibleFiles;
     public IReadOnlyList<string> VisibleMissing => _visibleMissing;
-    public string FilterSummary => $"Showing {VisibleFiles.Count:N0}/{MatchedCount:N0} files · {CopyCount:N0} selected for copying. Search does not change your selection.";
-    public string TxtFileName => string.IsNullOrWhiteSpace(TxtPath) ? "Choose or drop a .txt file" : Path.GetFileName(TxtPath);
-    public string TxtFileHint => string.IsNullOrWhiteSpace(TxtPath) ? "Filename list selected by the client" : TxtPath;
-    public string SourceHint => string.IsNullOrWhiteSpace(SourceFolder) ? "Choose or drop the source photo folder" : SourceFolder;
+    public string FilterSummary => LanguageService.IsVietnamese ? $"Đang hiện {VisibleFiles.Count:N0}/{MatchedCount:N0} file · {CopyCount:N0} file được chọn để sao chép. Tìm kiếm không thay đổi lựa chọn." : $"Showing {VisibleFiles.Count:N0}/{MatchedCount:N0} files · {CopyCount:N0} selected for copying. Search does not change your selection.";
+    public string TxtFileName => string.IsNullOrWhiteSpace(TxtPath) ? LanguageService.Text("Choose or drop a .txt file") : Path.GetFileName(TxtPath);
+    public string TxtFileHint => string.IsNullOrWhiteSpace(TxtPath) ? LanguageService.Text("Filename list selected by the client") : TxtPath;
+    public string SourceHint => string.IsNullOrWhiteSpace(SourceFolder) ? LanguageService.Text("Choose or drop the source photo folder") : SourceFolder;
     public string TotalSize => FormatSize(Files.Where(f => f.IncludeInCopy).Sum(f => f.Size));
-    public string SelectionSummary => $"Selected {CopyCount:N0}/{MatchedCount:N0} files · {TotalSize}";
+    public string SelectionSummary => LanguageService.IsVietnamese ? $"Đã chọn {CopyCount:N0}/{MatchedCount:N0} file · {TotalSize}" : $"Selected {CopyCount:N0}/{MatchedCount:N0} files · {TotalSize}";
     public string Readiness => _scan == null ? "Waiting to scan" : CopyCount == 0 ? "No files selected for copying" : "Ready to copy";
     private static string FormatSize(long size) => size >= 1073741824 ? $"{size / 1073741824d:N2} GB" : size >= 1048576 ? $"{size / 1048576d:N1} MB" : $"{size / 1024d:N1} KB";
     public string TxtPath { get => _txtPath; set { if (Set(ref _txtPath, value)) { InvalidateScan(); Notify(nameof(TxtFileName)); Notify(nameof(TxtFileHint)); } } }
@@ -112,7 +112,7 @@ public sealed class MainViewModel : ObservableObject
     public bool UseSubfolder { get => NeedsSubfolder; set => Subfolder = value; }
     public string SubfolderName { get => _subfolderName; set { if (Set(ref _subfolderName, value)) OutputChanged(); } }
     public int Policy { get => _policy; set => Set(ref _policy, value); }
-    public string[] Policies { get; } = ["Rename — keep both", "Skip existing files", "Replace destination files"];
+    public string[] Policies { get; } = LanguageService.Texts("Rename — keep both", "Skip existing files", "Replace destination files");
     public bool Busy { get => _busy; private set { Set(ref _busy, value); Notify(nameof(Idle)); RefreshCommands(); } }
     public bool Idle => !Busy;
     public bool Scanning { get => _scanning; private set => Set(ref _scanning, value); }
@@ -126,16 +126,16 @@ public sealed class MainViewModel : ObservableObject
     public int RequestedCount => _scan?.RequestedNames.Count ?? 0;
     public int MatchedCount => Files.Count;
     public int MissingCount => Missing.Count;
-    public string FilesTab => $"Files Found ({MatchedCount:N0})";
-    public string MissingTab => $"Not Found ({MissingCount:N0})";
-    public string IssuesTab => $"Notes / Errors ({Issues.Count:N0})";
+    public string FilesTab => LanguageService.IsVietnamese ? $"File tìm thấy ({MatchedCount:N0})" : $"Files Found ({MatchedCount:N0})";
+    public string MissingTab => LanguageService.IsVietnamese ? $"Không tìm thấy ({MissingCount:N0})" : $"Not Found ({MissingCount:N0})";
+    public string IssuesTab => LanguageService.IsVietnamese ? $"Ghi chú / Lỗi ({Issues.Count:N0})" : $"Notes / Errors ({Issues.Count:N0})";
     public bool HasNoResults => _scan == null;
     public string ResultSummary => _scan == null ? "Results will appear after scanning." :
         $"Scanned {_scan.ExaminedCount:N0} files · removed {_duplicates:N0} duplicate names · {Files.Sum(f => f.Size) / 1073741824d:N2} GB";
-    public string CopyLabel => CopyCount > 0 ? $"Copy {CopyCount:N0} Files  →" : "Copy Photos  →";
+    public string CopyLabel => LanguageService.IsVietnamese ? (CopyCount > 0 ? $"Sao chép {CopyCount:N0} file  →" : "Sao chép ảnh  →") : CopyCount > 0 ? $"Copy {CopyCount:N0} Files  →" : "Copy Photos  →";
     public string DestinationPreview
     {
-        get { try { return ResolveDestination(); } catch (Exception e) when (e is ArgumentException or IOException or UnauthorizedAccessException or NotSupportedException) { return e.Message; } }
+        get { try { return LanguageService.Text(ResolveDestination()); } catch (Exception e) when (e is ArgumentException or IOException or UnauthorizedAccessException or NotSupportedException) { return LanguageService.Text(e.Message); } }
     }
     private string ResolveDestination() => PathSafety.Destination(SourceFolder, Alongside, OutputFolder, Subfolder, SubfolderName);
     private void OutputChanged() { Notify(nameof(DestinationPreview)); Notify(nameof(NeedsSubfolder)); Notify(nameof(UseSubfolder)); }

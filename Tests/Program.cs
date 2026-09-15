@@ -373,6 +373,26 @@ internal static class Program
         await Render(reviewWindow, Path.Combine(screenshot, "filter-embedded.png"));
         typeof(ReviewWindow).GetMethod("ShowReviewScreen", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.Invoke(reviewWindow, null);
         Check(((FrameworkElement)reviewWindow.FindName("ReviewScreen")).Visibility == Visibility.Visible, "Review screen restores without opening another window");
+        LanguageService.UseForCurrentProcess(LanguageService.Vietnamese);
+        Check(LanguageService.Text("Help") == "Hướng dẫn" && LanguageService.Text("Filter Photos by TXT List") == "Lọc ảnh theo danh sách TXT", "Vietnamese language catalog translates both workspaces");
+        using var vietnameseVm = new ReviewViewModel(reviewDialogs, new ReviewCatalogService(Path.Combine(_root, "vi-catalog.json")), new ReviewSessionService(Path.Combine(_root, "vi-session.json")), new ReviewPreferencesService(Path.Combine(_root, "vi-preferences.json")));
+        Check(vietnameseVm.Filters[0] == "Tất cả ảnh" && vietnameseVm.ExportPolicies[0].StartsWith("Tự đổi tên"), "Vietnamese view model options preserve stable filter indexes");
+        var vietnameseReview = new ReviewWindow(vietnameseVm) { Width = 1360, Height = 820 };
+        LanguageService.Apply(vietnameseReview);
+        await Render(vietnameseReview, Path.Combine(screenshot, "vietnamese-review.png"));
+        vietnameseReview.ShowHelpPopup();
+        await Render(vietnameseReview, Path.Combine(screenshot, "vietnamese-review-help.png"));
+        typeof(ReviewWindow).GetMethod("HideHelpPopup", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.Invoke(vietnameseReview, null);
+        typeof(ReviewWindow).GetMethod("OnShowSettings", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.Invoke(vietnameseReview, [vietnameseReview, new RoutedEventArgs()]);
+        await Render(vietnameseReview, Path.Combine(screenshot, "vietnamese-settings.png"));
+        var vietnameseFilter = new MainWindow { DataContext = new MainViewModel(dialogs), Width = 1280, Height = 940 };
+        LanguageService.Apply(vietnameseFilter);
+        await Render(vietnameseFilter, Path.Combine(screenshot, "vietnamese-filter.png"));
+        vietnameseFilter.ShowHelpPopup();
+        await Render(vietnameseFilter, Path.Combine(screenshot, "vietnamese-filter-help.png"));
+        var languageChooser = new LanguageWindow { Width = 560, Height = 390 };
+        await Render(languageChooser, Path.Combine(screenshot, "language-first-run.png"));
+        LanguageService.UseForCurrentProcess(LanguageService.English);
         Check(dialogs.Errors.Count == 0, "No unexpected UI errors during full workflow");
         Console.WriteLine($"\n{_passed} checks passed. Fixtures: {_root}\nScreenshots: {screenshot}");
         // Keep fixtures for manual reproduction; they contain generated text, never user photos.

@@ -13,6 +13,8 @@ QiQi Photo Review tập trung vào quy trình thực tế sau buổi chụp:
 3. Xuất danh sách tên ảnh đã chọn hoặc chuyển trực tiếp sang màn hình lọc TXT.
 4. Tìm các file RAW cùng tên và sao chép chúng vào một thư mục riêng để chỉnh sửa.
 
+Lần mở đầu tiên, ứng dụng cho phép chọn **Tiếng Việt** hoặc **English**. Có thể đổi lại trong **Cài đặt / Settings**; ứng dụng sẽ xác nhận, lưu phiên và tự khởi động lại để áp dụng đồng bộ.
+
 > Ứng dụng không chỉnh sửa, di chuyển hoặc xóa ảnh gốc. Rating, nhãn màu và góc xoay chỉ được lưu trong dữ liệu cục bộ của ứng dụng.
 
 ## Tính năng chính
@@ -127,7 +129,7 @@ dotnet build PhotoFileFilter.sln -c Release
 dotnet run --project Tests/PhotoFileFilter.Tests.csproj -c Release
 ```
 
-Bộ kiểm thử hiện gồm **127 kiểm tra**, bao phủ parser TXT, quét thư mục, bảo vệ ảnh gốc, chính sách trùng tên, session Review và TXT Filter, rating, nhãn màu, xoay, zoom, histogram và bố cục WPF.
+Bộ kiểm thử hiện gồm **137 kiểm tra**, bao phủ parser TXT, quét thư mục, bảo vệ ảnh gốc, chính sách trùng tên, session Review và TXT Filter, chuyển ngôn ngữ, rating, nhãn màu, xoay, zoom, histogram và bố cục WPF.
 
 ## Đóng gói bản portable
 
@@ -154,6 +156,7 @@ Thư mục `artifacts` không được đưa vào Git. Nếu cần phát hành f
 | File | Nội dung |
 | --- | --- |
 | `settings.json` | Cấu hình màn hình lọc TXT |
+| `language.json` | Ngôn ngữ giao diện đã chọn |
 | `review-preferences.json` | Chất lượng preview, zoom, giao diện và phím tắt |
 | `review-session.json` | Thư mục, ảnh và trạng thái của phiên Review gần nhất |
 | `review-ratings.json` | Rating, cờ, nhãn màu và góc xoay |
@@ -187,8 +190,11 @@ publish.ps1            Script đóng gói portable cho Windows x64
 
 ## Phiên bản hiện tại
 
-**1.18.0**
+**1.19.0**
 
+- Thêm lựa chọn Tiếng Việt/English ở lần chạy đầu tiên.
+- Cho phép đổi ngôn ngữ trong Settings, xác nhận rồi tự khởi động lại.
+- Dịch các thao tác, hướng dẫn và trạng thái chính sang tiếng Việt; giữ thuật ngữ nhiếp ảnh quen thuộc bằng tiếng Anh.
 - Bổ sung hướng dẫn riêng cho màn hình TXT Filter.
 - Thêm nút xóa phiên TXT Filter, gồm đường dẫn đã lưu và kết quả quét hiện tại.
 - Thêm `Ctrl+1` và `Ctrl+2` để chuyển workspace, đồng thời làm rõ trạng thái workspace trên header.

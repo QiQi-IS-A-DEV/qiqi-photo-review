@@ -15,7 +15,7 @@ public sealed class PreviewService
         try
         {
             var direct = Decode(path, !Raster.Contains(Path.GetExtension(path)), token, maxEdge);
-            if (direct != null) return new(direct, "Preview: " + Path.GetFileName(path));
+            if (direct != null) return new(direct, (LanguageService.IsVietnamese ? "Preview: " : "Preview: ") + Path.GetFileName(path));
         }
         catch (Exception e) when (IsImageError(e)) { }
         if (!Raster.Contains(Path.GetExtension(path)))
@@ -31,14 +31,14 @@ public sealed class PreviewService
                     try
                     {
                         var image = Decode(candidate, false, token, maxEdge);
-                        if (image != null) return new(image, $"Using matching JPG preview: {Path.GetFileName(candidate)} — this is not a decoded RAW image.");
+                        if (image != null) return new(image, LanguageService.IsVietnamese ? $"Dùng preview JPG cùng tên: {Path.GetFileName(candidate)} — đây không phải RAW đã giải mã." : $"Using matching JPG preview: {Path.GetFileName(candidate)} — this is not a decoded RAW image.");
                     }
                     catch (Exception e) when (IsImageError(e)) { }
                 }
             }
             catch (Exception e) when (IsImageError(e)) { }
         }
-        return new(null, "This file could not be previewed. Its format may not be supported by the installed Windows codec, or the file may be damaged or missing. You can still show it in File Explorer.");
+        return new(null, LanguageService.IsVietnamese ? "Không thể xem preview file này. Windows có thể chưa có codec phù hợp, hoặc file bị hỏng/không còn tồn tại. Bạn vẫn có thể mở vị trí file trong File Explorer." : "This file could not be previewed. Its format may not be supported by the installed Windows codec, or the file may be damaged or missing. You can still show it in File Explorer.");
     }
 
     private static BitmapSource? Decode(string path, bool thumbnailOnly, CancellationToken token, int maxEdge)

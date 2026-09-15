@@ -27,20 +27,20 @@ public sealed class DialogService : IDialogService
 {
     public string? SelectTextFile()
     {
-        var dialog = new OpenFileDialog { Title = "Choose a filename list", Filter = "TXT list (*.txt)|*.txt", CheckFileExists = true };
+        var dialog = new OpenFileDialog { Title = LanguageService.Text("Choose a filename list"), Filter = LanguageService.IsVietnamese ? "Danh sách TXT (*.txt)|*.txt" : "TXT list (*.txt)|*.txt", CheckFileExists = true };
         return dialog.ShowDialog(Application.Current.MainWindow) == true ? dialog.FileName : null;
     }
     public string[]? SelectReviewSources(string? initialFolder)
     {
         var dialog = new OpenFileDialog
         {
-            Title = "Preview photos and import the current folder",
-            Filter = "Supported photos|*.jpg;*.jpeg;*.png;*.tif;*.tiff;*.heic;*.arw;*.cr2;*.cr3;*.nef;*.raf;*.orf;*.rw2;*.dng|All files|*.*",
+            Title = LanguageService.Text("Preview photos and import the current folder"),
+            Filter = (LanguageService.IsVietnamese ? "Ảnh hỗ trợ" : "Supported photos") + "|*.jpg;*.jpeg;*.png;*.tif;*.tiff;*.heic;*.arw;*.cr2;*.cr3;*.nef;*.raf;*.orf;*.rw2;*.dng|" + (LanguageService.IsVietnamese ? "Tất cả file" : "All files") + "|*.*",
             CheckFileExists = false,
             CheckPathExists = true,
             ValidateNames = false,
             Multiselect = false,
-            FileName = "Import this folder"
+            FileName = LanguageService.Text("Import this folder")
         };
         if (Directory.Exists(initialFolder)) dialog.InitialDirectory = initialFolder;
         if (dialog.ShowDialog(Application.Current.MainWindow) != true) return null;
@@ -50,27 +50,27 @@ public sealed class DialogService : IDialogService
     }
     public string? SelectFolder(string title)
     {
-        var dialog = new OpenFolderDialog { Title = title, Multiselect = false };
+        var dialog = new OpenFolderDialog { Title = LanguageService.Text(title), Multiselect = false };
         return dialog.ShowDialog(Application.Current.MainWindow) == true ? dialog.FolderName : null;
     }
     public string? SaveReport()
     {
-        var dialog = new SaveFileDialog { Title = "Save report", FileName = "PhotoFileFilter-report.txt", Filter = "Text (*.txt)|*.txt" };
+        var dialog = new SaveFileDialog { Title = LanguageService.Text("Save report"), FileName = "PhotoFileFilter-report.txt", Filter = "Text (*.txt)|*.txt" };
         return dialog.ShowDialog(Application.Current.MainWindow) == true ? dialog.FileName : null;
     }
     public string? SaveReviewNameList(string suggestedName)
     {
-        var dialog = new SaveFileDialog { Title = "Export filename list", FileName = suggestedName, Filter = "TXT list (*.txt)|*.txt" };
+        var dialog = new SaveFileDialog { Title = LanguageService.Text("Export filename list"), FileName = suggestedName, Filter = LanguageService.IsVietnamese ? "Danh sách TXT (*.txt)|*.txt" : "TXT list (*.txt)|*.txt" };
         return dialog.ShowDialog(Application.Current.MainWindow) == true ? dialog.FileName : null;
     }
     public bool ConfirmCopy(int count, string source, string destination, string policy) =>
         MessageBox.Show(Application.Current.MainWindow,
-            $"Copy {count:N0} files?\n\nFrom:\n{source}\n\nTo:\n{destination}\n\nIf a filename already exists: {policy}\n\nOriginal photos remain unchanged.",
-            "Confirm Copy", MessageBoxButton.OKCancel, MessageBoxImage.Question, MessageBoxResult.Cancel) == MessageBoxResult.OK;
+            LanguageService.IsVietnamese ? $"Sao chép {count:N0} file?\n\nTừ:\n{source}\n\nĐến:\n{destination}\n\nKhi tên file đã tồn tại: {policy}\n\nẢnh gốc được giữ nguyên." : $"Copy {count:N0} files?\n\nFrom:\n{source}\n\nTo:\n{destination}\n\nIf a filename already exists: {policy}\n\nOriginal photos remain unchanged.",
+            LanguageService.IsVietnamese ? "Xác nhận sao chép" : "Confirm Copy", MessageBoxButton.OKCancel, MessageBoxImage.Question, MessageBoxResult.Cancel) == MessageBoxResult.OK;
     public bool ConfirmClearReviewSession() =>
         MessageBox.Show(Application.Current.MainWindow,
-            "Clear the current review session?\n\nThe open photo list will be closed. Ratings, flags, color labels, and original files will be preserved.",
-            "Clear Review Session", MessageBoxButton.OKCancel, MessageBoxImage.Question, MessageBoxResult.Cancel) == MessageBoxResult.OK;
+            LanguageService.IsVietnamese ? "Xóa phiên Review hiện tại?\n\nDanh sách ảnh đang mở sẽ được đóng. Rating, cờ, nhãn màu và file gốc được giữ nguyên." : "Clear the current review session?\n\nThe open photo list will be closed. Ratings, flags, color labels, and original files will be preserved.",
+            LanguageService.IsVietnamese ? "Xóa phiên Review" : "Clear Review Session", MessageBoxButton.OKCancel, MessageBoxImage.Question, MessageBoxResult.Cancel) == MessageBoxResult.OK;
     public void ShowError(string message) => MessageBox.Show(Application.Current.MainWindow, message, "Photo File Filter", MessageBoxButton.OK, MessageBoxImage.Warning);
     public void OpenFolder(string path) => Process.Start(new ProcessStartInfo("explorer.exe", $"\"{path}\"") { UseShellExecute = true });
     public void CopyText(string text) => Clipboard.SetText(text);

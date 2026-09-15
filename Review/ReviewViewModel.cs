@@ -24,7 +24,7 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     private ReviewPhoto? _current;
     private BitmapSource? _previewImage;
     private BitmapSource? _histogramImage;
-    private string _folder = "", _status = "Choose a folder to begin reviewing photos.", _previewMessage = "";
+    private string _folder = "", _status = LanguageService.IsVietnamese ? "Chọn thư mục để bắt đầu Review ảnh." : "Choose a folder to begin reviewing photos.", _previewMessage = "";
     private bool _busy, _recursive = true;
     private int _filterIndex, _viewMode, _exportPolicy, _selectedCount = 1;
     private string? _lastExportFolder;
@@ -34,7 +34,7 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     private double _zoom = 1;
     private double _panX, _panY;
     private string _overlayMessage = "";
-    private string _histogramSummary = "No histogram data", _histogramAssessment = "Select a photo to analyze its tonal range.";
+    private string _histogramSummary = LanguageService.Text("No histogram data"), _histogramAssessment = LanguageService.Text("Select a photo to analyze its tonal range.");
     private bool _overlayVisible;
     private int _previewMaxEdge = 1800, _zoomStepPercent = 25, _clickZoomPercent = 200, _overlayDurationMs = 950, _overlayPosition, _defaultView;
     private bool _startWithPanelsHidden, _histogramEnabled = true;
@@ -73,13 +73,13 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
 
     public ObservableCollection<ReviewPhoto> Photos { get; } = [];
     public ObservableCollection<ReviewPhoto> FilteredPhotos { get; } = [];
-    public string[] Filters { get; } = ["All Photos", "Pick", "≥ 1 Star", "≥ 3 Stars", "5 Stars", "Reject", "Unrated", "Red Label", "Yellow Label", "Green Label", "Blue Label"];
-    public string[] ExportPolicies { get; } = ["Rename — keep both", "Skip existing files", "Replace destination files"];
+    public string[] Filters { get; } = LanguageService.Texts("All Photos", "Pick", "≥ 1 Star", "≥ 3 Stars", "5 Stars", "Reject", "Unrated", "Red Label", "Yellow Label", "Green Label", "Blue Label");
+    public string[] ExportPolicies { get; } = LanguageService.Texts("Rename — keep both", "Skip existing files", "Replace destination files");
     public int[] PreviewSizeOptions { get; } = [1200, 1800, 2400];
     public int[] ZoomStepOptions { get; } = [10, 25, 50];
     public int[] ClickZoomOptions { get; } = [125, 150, 200, 300, 400, 800];
     public int[] OverlayDurationOptions { get; } = [600, 950, 1500];
-    public string[] OverlayPositionOptions { get; } = ["Bottom of photo", "Center of photo"];
+    public string[] OverlayPositionOptions { get; } = LanguageService.Texts("Bottom of photo", "Center of photo");
     public string[] DefaultViewOptions { get; } = ["Grid", "Loupe"];
     public string[] HelpShortcutOptions { get; } = ["F1", "Ctrl+H"];
     public string[] ZenShortcutOptions { get; } = ["Tab", "F"];
@@ -103,7 +103,7 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     public RelayCommand WindowsCacheCleanupCommand { get; }
     public RelayCommand UndoCommand { get; }
     public string Folder { get => _folder; private set { Set(ref _folder, value); Notify(nameof(FolderName)); } }
-    public string FolderName => string.IsNullOrWhiteSpace(Folder) ? "No folder imported" : Path.GetFileName(Path.TrimEndingDirectorySeparator(Folder));
+    public string FolderName => string.IsNullOrWhiteSpace(Folder) ? LanguageService.Text("No folder imported") : Path.GetFileName(Path.TrimEndingDirectorySeparator(Folder));
     public bool Recursive { get => _recursive; set { if (Set(ref _recursive, value)) QueueSessionSave(); } }
     public bool Busy { get => _busy; private set { Set(ref _busy, value); RefreshCommands(); } }
     public string Status { get => _status; private set => Set(ref _status, value); }
@@ -148,17 +148,17 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
         }
     }
     public int CurrentPosition => CurrentPhoto == null ? 0 : FilteredPhotos.IndexOf(CurrentPhoto) + 1;
-    public string PositionLabel => SelectedCount > 1 ? $"{CurrentPosition:N0} / {FilteredPhotos.Count:N0}  ·  {SelectedCount:N0} selected" : $"{CurrentPosition:N0} / {FilteredPhotos.Count:N0}";
+    public string PositionLabel => SelectedCount > 1 ? (LanguageService.IsVietnamese ? $"{CurrentPosition:N0} / {FilteredPhotos.Count:N0}  ·  đã chọn {SelectedCount:N0}" : $"{CurrentPosition:N0} / {FilteredPhotos.Count:N0}  ·  {SelectedCount:N0} selected") : $"{CurrentPosition:N0} / {FilteredPhotos.Count:N0}";
     public int SelectedCount { get => _selectedCount; private set { if (Set(ref _selectedCount, value)) Notify(nameof(PositionLabel)); } }
     public string RatingStars => CurrentPhoto?.Stars ?? "—";
-    public string CurrentName => CurrentPhoto?.Name ?? "No photo selected";
+    public string CurrentName => CurrentPhoto?.Name ?? LanguageService.Text("No photo selected");
     public string CurrentPath => CurrentPhoto?.RelativePath ?? "";
     public string CurrentDetails => CurrentPhoto == null ? "" : $"{CurrentPhoto.Extension}  ·  {FormatSize(CurrentPhoto.Size)}  ·  {CurrentPhoto.LastWriteUtc.ToLocalTime():dd/MM/yyyy HH:mm}";
     public int PickCount => Photos.Count(p => p.Flag == ReviewFlag.Pick);
     public int RejectCount => Photos.Count(p => p.Flag == ReviewFlag.Reject);
     public int RatedCount => Photos.Count(p => p.Rating > 0);
     public int ColorCount => Photos.Count(p => p.ColorLabel != ReviewColor.None);
-    public string CatalogSummary => $"{Photos.Count:N0} photos  ·  {PickCount:N0} picks  ·  {RatedCount:N0} rated  ·  {ColorCount:N0} color labels";
+    public string CatalogSummary => LanguageService.IsVietnamese ? $"{Photos.Count:N0} ảnh  ·  {PickCount:N0} Pick  ·  {RatedCount:N0} đã chấm  ·  {ColorCount:N0} nhãn màu" : $"{Photos.Count:N0} photos  ·  {PickCount:N0} picks  ·  {RatedCount:N0} rated  ·  {ColorCount:N0} color labels";
 
     public async Task ImportAsync(string folder)
     {

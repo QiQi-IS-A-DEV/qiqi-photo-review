@@ -1,12 +1,15 @@
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using PhotoFileFilter.Services;
 
 namespace PhotoFileFilter.Review;
 
 public sealed record HistogramResult(BitmapSource Chart, double HighlightPercent, double ShadowPercent, double AverageLuminance)
 {
-    public string Summary => $"Highlights {HighlightPercent:0.0}%  ·  Shadows {ShadowPercent:0.0}%  ·  Average {AverageLuminance * 100:0}%";
-    public string Assessment => HighlightPercent >= 2 ? "Check highlights for possible clipping" : ShadowPercent >= 8 ? "Check shadows for possible clipping" : AverageLuminance < 0.22 ? "The photo is relatively dark" : AverageLuminance > 0.78 ? "The photo is relatively bright" : "Tonal distribution looks balanced";
+    public string Summary => LanguageService.IsVietnamese ? $"Vùng sáng {HighlightPercent:0.0}%  ·  Vùng tối {ShadowPercent:0.0}%  ·  Trung bình {AverageLuminance * 100:0}%" : $"Highlights {HighlightPercent:0.0}%  ·  Shadows {ShadowPercent:0.0}%  ·  Average {AverageLuminance * 100:0}%";
+    public string Assessment => LanguageService.IsVietnamese
+        ? HighlightPercent >= 2 ? "Kiểm tra vùng sáng có thể bị cháy" : ShadowPercent >= 8 ? "Kiểm tra vùng tối có thể bị mất chi tiết" : AverageLuminance < 0.22 ? "Ảnh tương đối tối" : AverageLuminance > 0.78 ? "Ảnh tương đối sáng" : "Phân bố sáng tối khá cân bằng"
+        : HighlightPercent >= 2 ? "Check highlights for possible clipping" : ShadowPercent >= 8 ? "Check shadows for possible clipping" : AverageLuminance < 0.22 ? "The photo is relatively dark" : AverageLuminance > 0.78 ? "The photo is relatively bright" : "Tonal distribution looks balanced";
 }
 
 public sealed class HistogramService

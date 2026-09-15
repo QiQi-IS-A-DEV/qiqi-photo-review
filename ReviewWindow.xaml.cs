@@ -17,6 +17,7 @@ public partial class ReviewWindow : Window
     private Point _panOrigin;
     private bool _isPanning;
     private bool _zenMode;
+    private bool _languageReady;
     private GridLength _navigatorWidth = new(240), _ratingWidth = new(255);
 
     public ReviewWindow() : this(null, null) { }
@@ -31,9 +32,11 @@ public partial class ReviewWindow : Window
         ThemeService.Apply(true);
         _initialFolder = Directory.Exists(initialFolder) ? initialFolder : null;
         _viewModel = viewModel ?? new(new DialogService()); DataContext = _viewModel;
+        LanguageCombo.SelectedValue = LanguageService.CurrentLanguage;
         Width = Math.Min(Width, SystemParameters.WorkArea.Width); Height = Math.Min(Height, SystemParameters.WorkArea.Height);
         Loaded += async (_, _) =>
         {
+            LanguageService.Apply(this); _languageReady = true;
             if (_initialFolder != null) await _viewModel.ImportAsync(_initialFolder);
             else await _viewModel.RestoreSessionAsync();
             if (_viewModel.StartWithPanelsHidden && !_zenMode) ToggleZenMode();
@@ -226,14 +229,14 @@ public partial class ReviewWindow : Window
         if (_filterWindow.DataContext is ViewModels.MainViewModel filterTheme) filterTheme.DarkMode = true;
         ReviewScreen.Visibility = Visibility.Collapsed;
         FilterHost.Visibility = Visibility.Visible;
-        Title = "QiQi Studio · Filter Photos by TXT List";
+        Title = LanguageService.Text("QiQi Studio · Filter Photos by TXT List");
         FilterHost.Focus();
     }
     private void ShowReviewScreen()
     {
         FilterHost.Visibility = Visibility.Collapsed;
         ReviewScreen.Visibility = Visibility.Visible;
-        Title = "QiQi Studio · Import & Review";
+        Title = LanguageService.Text("QiQi Studio · Import & Review");
         Focus();
     }
     private void OnClose(object sender, RoutedEventArgs e) => Close();
@@ -261,6 +264,25 @@ public partial class ReviewWindow : Window
     private void HideHelpPopup() { HelpOverlay.Visibility = Visibility.Collapsed; Focus(); }
     private void OnShowSettings(object sender, RoutedEventArgs e) { HelpOverlay.Visibility = Visibility.Collapsed; SettingsOverlay.Visibility = Visibility.Visible; SettingsOverlay.Focus(); }
     private void OnCloseSettings(object sender, RoutedEventArgs e) => HideSettingsPopup();
+    private void OnLanguageChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (!_languageReady || LanguageCombo.SelectedValue is not string language || language == LanguageService.CurrentLanguage) return;
+        var vietnamese = language == LanguageService.Vietnamese;
+        var message = vietnamese
+            ? "Chuyển giao diện sang Tiếng Việt?\n\nỨng dụng sẽ lưu phiên hiện tại và tự khởi động lại để áp dụng ngôn ngữ."
+            : "Switch the interface to English?\n\nThe app will save the current session and restart to apply the language.";
+        var title = vietnamese ? "Xác nhận đổi ngôn ngữ" : "Confirm Language Change";
+        if (MessageBox.Show(this, message, title, MessageBoxButton.OKCancel, MessageBoxImage.Question, MessageBoxResult.Cancel) == MessageBoxResult.OK)
+        {
+            _viewModel.SaveSessionNow();
+            if (_filterWindow?.DataContext is ViewModels.MainViewModel filter) filter.SaveSettings();
+            LanguageService.Set(language); LanguageService.Restart();
+        }
+        else
+        {
+            _languageReady = false; LanguageCombo.SelectedValue = LanguageService.CurrentLanguage; _languageReady = true;
+        }
+    }
     private void OnResetSettings(object sender, RoutedEventArgs e) => _viewModel.ResetPreferences();
     private void HideSettingsPopup() { SettingsOverlay.Visibility = Visibility.Collapsed; Focus(); }
     private static bool MatchesShortcut(KeyEventArgs e, string shortcut)

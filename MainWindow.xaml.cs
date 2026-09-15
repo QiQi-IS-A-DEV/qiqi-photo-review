@@ -21,6 +21,7 @@ public partial class MainWindow : Window
         Height = Math.Min(Height, SystemParameters.WorkArea.Height);
         Loaded += (_, _) =>
         {
+            LanguageService.Apply(this);
             if (Owner is ReviewWindow)
             {
                 ReviewNavigationButton.Content = "Back to Review";
@@ -92,8 +93,8 @@ public partial class MainWindow : Window
         if (DataContext is not MainViewModel { Busy: false } vm) return;
         var owner = Window.GetWindow(ReviewNavigationButton) ?? Application.Current.MainWindow;
         var confirmed = MessageBox.Show(owner,
-            "Clear the current TXT Filter session?\n\nThe TXT list, source and destination paths, and scan results will be removed from the app. Original photos and TXT files will not be changed.",
-            "Clear TXT Filter Session", MessageBoxButton.OKCancel, MessageBoxImage.Question, MessageBoxResult.Cancel);
+            LanguageService.IsVietnamese ? "Xóa phiên Lọc TXT hiện tại?\n\nDanh sách TXT, đường dẫn nguồn/đích và kết quả quét sẽ được xóa khỏi app. Ảnh gốc và file TXT không bị thay đổi." : "Clear the current TXT Filter session?\n\nThe TXT list, source and destination paths, and scan results will be removed from the app. Original photos and TXT files will not be changed.",
+            LanguageService.IsVietnamese ? "Xóa phiên Lọc TXT" : "Clear TXT Filter Session", MessageBoxButton.OKCancel, MessageBoxImage.Question, MessageBoxResult.Cancel);
         if (confirmed == MessageBoxResult.OK) vm.ClearSession();
     }
     private void OnOpenReview(object sender, RoutedEventArgs e)
@@ -120,6 +121,7 @@ public partial class MainWindow : Window
         var content = (FrameworkElement)Content;
         content.DataContext = DataContext;
         content.Tag = this;
+        LanguageService.Apply(content);
         Content = null;
         return content;
     }

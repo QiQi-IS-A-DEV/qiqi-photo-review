@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
+using PhotoFileFilter.Services;
 
 namespace PhotoFileFilter.ViewModels;
 
@@ -10,6 +11,7 @@ public abstract class ObservableObject : INotifyPropertyChanged
     protected void Notify([CallerMemberName] string? name = null) => PropertyChanged?.Invoke(this, new(name));
     protected bool Set<T>(ref T field, T value, [CallerMemberName] string? name = null)
     {
+        if (value is string text) value = (T)(object)LanguageService.Text(text);
         if (EqualityComparer<T>.Default.Equals(field, value)) return false;
         field = value; Notify(name); return true;
     }
