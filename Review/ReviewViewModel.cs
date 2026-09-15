@@ -36,7 +36,7 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     private string _overlayMessage = "";
     private string _histogramSummary = "No histogram data", _histogramAssessment = "Select a photo to analyze its tonal range.";
     private bool _overlayVisible;
-    private int _previewMaxEdge = 1800, _zoomStepPercent = 25, _overlayDurationMs = 950, _overlayPosition, _defaultView;
+    private int _previewMaxEdge = 1800, _zoomStepPercent = 25, _clickZoomPercent = 200, _overlayDurationMs = 950, _overlayPosition, _defaultView;
     private bool _startWithPanelsHidden, _histogramEnabled = true;
     private string _helpShortcut = "F1", _zenShortcut = "Tab", _undoShortcut = "Ctrl+Z", _resetZoomShortcut = "` + Ctrl+0", _gridShortcut = "G", _loupeShortcut = "E";
     private readonly List<UndoEntry> _undo = [];
@@ -77,6 +77,7 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     public string[] ExportPolicies { get; } = ["Rename — keep both", "Skip existing files", "Replace destination files"];
     public int[] PreviewSizeOptions { get; } = [1200, 1800, 2400];
     public int[] ZoomStepOptions { get; } = [10, 25, 50];
+    public int[] ClickZoomOptions { get; } = [125, 150, 200, 300, 400, 800];
     public int[] OverlayDurationOptions { get; } = [600, 950, 1500];
     public string[] OverlayPositionOptions { get; } = ["Bottom of photo", "Center of photo"];
     public string[] DefaultViewOptions { get; } = ["Grid", "Loupe"];
@@ -116,6 +117,7 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     public bool OverlayVisible { get => _overlayVisible; private set => Set(ref _overlayVisible, value); }
     public int PreviewMaxEdge { get => _previewMaxEdge; set { if (Set(ref _previewMaxEdge, PreviewSizeOptions.Contains(value) ? value : 1800)) SavePreferences(); } }
     public int ZoomStepPercent { get => _zoomStepPercent; set { if (Set(ref _zoomStepPercent, ZoomStepOptions.Contains(value) ? value : 25)) SavePreferences(); } }
+    public int ClickZoomPercent { get => _clickZoomPercent; set { if (Set(ref _clickZoomPercent, ClickZoomOptions.Contains(value) ? value : 200)) SavePreferences(); } }
     public int OverlayDurationMs { get => _overlayDurationMs; set { if (Set(ref _overlayDurationMs, OverlayDurationOptions.Contains(value) ? value : 950)) SavePreferences(); } }
     public int OverlayPosition { get => _overlayPosition; set { if (Set(ref _overlayPosition, Math.Clamp(value, 0, 1))) SavePreferences(); } }
     public int DefaultView { get => _defaultView; set { if (Set(ref _defaultView, Math.Clamp(value, 0, 1))) SavePreferences(); } }
@@ -256,6 +258,7 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     {
         _previewMaxEdge = PreviewSizeOptions.Contains(value.PreviewMaxEdge) ? value.PreviewMaxEdge : 1800;
         _zoomStepPercent = ZoomStepOptions.Contains(value.ZoomStepPercent) ? value.ZoomStepPercent : 25;
+        _clickZoomPercent = ClickZoomOptions.Contains(value.ClickZoomPercent) ? value.ClickZoomPercent : 200;
         _overlayDurationMs = OverlayDurationOptions.Contains(value.OverlayDurationMs) ? value.OverlayDurationMs : 950;
         _overlayPosition = Math.Clamp(value.OverlayPosition, 0, 1); _defaultView = Math.Clamp(value.DefaultView, 0, 1);
         _startWithPanelsHidden = value.StartWithPanelsHidden; _histogramEnabled = value.HistogramEnabled;
@@ -271,13 +274,13 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     private void SavePreferences()
     {
         _preferencesService.Save(new(PreviewMaxEdge, ZoomStepPercent, OverlayDurationMs, OverlayPosition, DefaultView, StartWithPanelsHidden, HistogramEnabled,
-            HelpShortcut, ZenShortcut, UndoShortcut, ResetZoomShortcut, GridShortcut, LoupeShortcut));
+            HelpShortcut, ZenShortcut, UndoShortcut, ResetZoomShortcut, GridShortcut, LoupeShortcut, ClickZoomPercent));
     }
 
     public void ResetPreferences()
     {
         ApplyPreferences(new());
-        foreach (var name in new[] { nameof(PreviewMaxEdge), nameof(ZoomStepPercent), nameof(OverlayDurationMs), nameof(OverlayPosition), nameof(DefaultView), nameof(StartWithPanelsHidden), nameof(HistogramEnabled), nameof(HelpShortcut), nameof(ZenShortcut), nameof(UndoShortcut), nameof(ResetZoomShortcut), nameof(GridShortcut), nameof(LoupeShortcut), nameof(ViewMode), nameof(IsGrid), nameof(IsLoupe) }) Notify(name);
+        foreach (var name in new[] { nameof(PreviewMaxEdge), nameof(ZoomStepPercent), nameof(ClickZoomPercent), nameof(OverlayDurationMs), nameof(OverlayPosition), nameof(DefaultView), nameof(StartWithPanelsHidden), nameof(HistogramEnabled), nameof(HelpShortcut), nameof(ZenShortcut), nameof(UndoShortcut), nameof(ResetZoomShortcut), nameof(GridShortcut), nameof(LoupeShortcut), nameof(ViewMode), nameof(IsGrid), nameof(IsLoupe) }) Notify(name);
         SavePreferences(); Status = "Restored the default Photo Review settings.";
     }
 
@@ -331,8 +334,23 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     public void ZoomBy(int direction)
     {
         var factor = 1 + ZoomStepPercent / 100d;
-        Zoom = direction > 0 ? Math.Min(8, Zoom * factor) : Math.Max(0.25, Zoom / factor);
-        if (Zoom <= 1) ResetPan();
+        ZoomTo(direction > 0 ? Math.Min(8, Zoom * factor) : Math.Max(0.25, Zoom / factor), 0, 0);
+    }
+    public void ZoomAt(int direction, double anchorX, double anchorY)
+    {
+        var factor = 1 + ZoomStepPercent / 100d;
+        ZoomTo(direction > 0 ? Math.Min(8, Zoom * factor) : Math.Max(0.25, Zoom / factor), anchorX, anchorY);
+    }
+    public void ZoomTo(double targetZoom, double anchorX, double anchorY)
+    {
+        var oldZoom = Zoom;
+        var newZoom = Math.Clamp(targetZoom, 0.25, 8);
+        if (newZoom <= 1) { ResetZoom(); return; }
+        var ratio = newZoom / oldZoom;
+        var nextPanX = anchorX - (anchorX - PanX) * ratio;
+        var nextPanY = anchorY - (anchorY - PanY) * ratio;
+        Zoom = newZoom;
+        PanTo(nextPanX, nextPanY);
     }
     public void PanTo(double x, double y)
     {

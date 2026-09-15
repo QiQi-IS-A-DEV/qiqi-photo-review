@@ -16,7 +16,8 @@ public sealed record ReviewPreferences(
     string UndoShortcut = "Ctrl+Z",
     string ResetZoomShortcut = "` + Ctrl+0",
     string GridShortcut = "G",
-    string LoupeShortcut = "E");
+    string LoupeShortcut = "E",
+    int ClickZoomPercent = 200);
 
 public sealed class ReviewPreferencesService(string? filePath = null)
 {

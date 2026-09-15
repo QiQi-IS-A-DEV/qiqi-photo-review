@@ -38,6 +38,8 @@ QiQi Photo Review tập trung vào quy trình thực tế sau buổi chụp:
 ### Xem ảnh
 
 - Zoom bằng bàn phím hoặc con lăn chuột.
+- Zoom theo đúng vị trí con trỏ để vùng đang quan sát không bị đẩy khỏi khung hình.
+- Nhấp một lần trong Loupe để zoom đến mức tùy chọn; nhấp lại để trở về chế độ Fit.
 - Kéo ảnh bằng chuột khi đang zoom lớn hơn 100%.
 - Xoay trái hoặc phải 90° mà không thay đổi file gốc.
 - Histogram RGB giúp kiểm tra nhanh vùng sáng, vùng tối và độ sáng trung bình.
@@ -172,8 +174,10 @@ publish.ps1            Script đóng gói portable cho Windows x64
 
 ## Phiên bản hiện tại
 
-**1.16.1**
+**1.17.0**
 
+- Bổ sung zoom theo con trỏ và 1-click zoom với mức phóng đại tùy chỉnh.
+- Đảo vị trí header: điều khiển hỗ trợ bên trái, thao tác chính bên phải.
 - Sắp xếp lại header: thao tác chính ở bên trái, điều khiển hỗ trợ ở bên phải.
 - Giao diện ứng dụng sử dụng tiếng Anh thống nhất.
 - Popup hướng dẫn mô tả đầy đủ quy trình JPG → RAW.

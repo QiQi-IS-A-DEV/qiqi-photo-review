@@ -15,6 +15,7 @@ public partial class ReviewWindow : Window
     private MainWindow? _filterWindow;
     private Point? _panStart;
     private Point _panOrigin;
+    private bool _isPanning;
     private bool _zenMode;
     private GridLength _navigatorWidth = new(240), _ratingWidth = new(255);
 
@@ -118,26 +119,42 @@ public partial class ReviewWindow : Window
     private void OnZoomIn(object sender, RoutedEventArgs e) => _viewModel.ZoomBy(1);
     private void OnZoomOut(object sender, RoutedEventArgs e) => _viewModel.ZoomBy(-1);
     private void OnResetZoom(object sender, RoutedEventArgs e) => _viewModel.ResetZoom();
-    private void OnLoupeMouseWheel(object sender, MouseWheelEventArgs e) { _viewModel.ZoomBy(e.Delta > 0 ? 1 : -1); e.Handled = true; }
+    private void OnLoupeMouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        var pointer = e.GetPosition(LoupeViewport);
+        _viewModel.ZoomAt(e.Delta > 0 ? 1 : -1, pointer.X - LoupeViewport.ActualWidth / 2, pointer.Y - LoupeViewport.ActualHeight / 2);
+        e.Handled = true;
+    }
     private void OnLoupeMouseDown(object sender, MouseButtonEventArgs e)
     {
-        if (_viewModel.Zoom <= 1 || IsInsideButton(e.OriginalSource as DependencyObject)) return;
+        if (e.ChangedButton != MouseButton.Left || !_viewModel.HasPreview || IsInsideButton(e.OriginalSource as DependencyObject)) return;
         _panStart = e.GetPosition(LoupeViewport); _panOrigin = new(_viewModel.PanX, _viewModel.PanY);
-        LoupeViewport.CaptureMouse(); LoupeViewport.Cursor = Cursors.SizeAll; e.Handled = true;
+        _isPanning = false;
+        LoupeViewport.CaptureMouse(); LoupeViewport.Cursor = _viewModel.Zoom > 1 ? Cursors.SizeAll : Cursors.Hand; e.Handled = true;
     }
     private void OnLoupeMouseMove(object sender, MouseEventArgs e)
     {
         if (_panStart is not { } start || e.LeftButton != MouseButtonState.Pressed) return;
         var current = e.GetPosition(LoupeViewport);
+        if (!_isPanning && Math.Abs(current.X - start.X) + Math.Abs(current.Y - start.Y) < 5) return;
+        if (_viewModel.Zoom <= 1) return;
+        _isPanning = true;
         _viewModel.PanTo(_panOrigin.X + current.X - start.X, _panOrigin.Y + current.Y - start.Y);
         e.Handled = true;
     }
     private void OnLoupeMouseUp(object sender, MouseButtonEventArgs e)
     {
-        if (_panStart == null) return;
-        _panStart = null; LoupeViewport.ReleaseMouseCapture(); LoupeViewport.Cursor = Cursors.Arrow; e.Handled = true;
+        if (_panStart is not { } start) return;
+        var wasPanning = _isPanning;
+        _panStart = null; _isPanning = false; LoupeViewport.ReleaseMouseCapture(); LoupeViewport.Cursor = Cursors.Arrow;
+        if (!wasPanning)
+        {
+            if (_viewModel.Zoom > 1) _viewModel.ResetZoom();
+            else _viewModel.ZoomTo(_viewModel.ClickZoomPercent / 100d, start.X - LoupeViewport.ActualWidth / 2, start.Y - LoupeViewport.ActualHeight / 2);
+        }
+        e.Handled = true;
     }
-    private void OnLoupeLostMouseCapture(object sender, MouseEventArgs e) { _panStart = null; LoupeViewport.Cursor = Cursors.Arrow; }
+    private void OnLoupeLostMouseCapture(object sender, MouseEventArgs e) { _panStart = null; _isPanning = false; LoupeViewport.Cursor = Cursors.Arrow; }
     private static bool IsInsideButton(DependencyObject? element)
     {
         while (element != null)

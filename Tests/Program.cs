@@ -250,6 +250,8 @@ internal static class Program
         Check(rotatedPhoto.Rotation == 90, "Review rotation normalizes left and right 90-degree turns");
         reviewVm.ResetZoom(); reviewVm.ZoomBy(1);
         Check(Math.Abs(reviewVm.Zoom - 1.25) < 0.001, "Loupe zoom increases in controlled steps");
+        reviewVm.ResetZoom(); reviewVm.ZoomTo(2, 200, -100);
+        Check(Math.Abs(reviewVm.PanX + 200) < 0.001 && Math.Abs(reviewVm.PanY - 100) < 0.001, "Cursor-centered zoom keeps the pointed image location under the pointer");
         reviewVm.PanTo(120, -80);
         Check(reviewVm.PanX == 120 && reviewVm.PanY == -80, "A zoomed Loupe image can be panned horizontally and vertically");
         reviewVm.ResetZoom();
@@ -265,11 +267,11 @@ internal static class Program
         var preferencesPath = Path.Combine(_root, "custom-review-preferences.json");
         using (var preferencesVm = new ReviewViewModel(reviewDialogs, new ReviewCatalogService(Path.Combine(_root, "preferences-catalog.json")), new ReviewSessionService(Path.Combine(_root, "preferences-session.json")), new ReviewPreferencesService(preferencesPath)))
         {
-            preferencesVm.PreviewMaxEdge = 2400; preferencesVm.ZoomStepPercent = 50; preferencesVm.OverlayPosition = 1;
+            preferencesVm.PreviewMaxEdge = 2400; preferencesVm.ZoomStepPercent = 50; preferencesVm.ClickZoomPercent = 300; preferencesVm.OverlayPosition = 1;
             preferencesVm.HelpShortcut = "Ctrl+H"; preferencesVm.ZenShortcut = "F"; preferencesVm.ResetZoomShortcut = "Ctrl+0";
         }
         using (var restoredPreferences = new ReviewViewModel(reviewDialogs, new ReviewCatalogService(Path.Combine(_root, "preferences-catalog-2.json")), new ReviewSessionService(Path.Combine(_root, "preferences-session-2.json")), new ReviewPreferencesService(preferencesPath)))
-            Check(restoredPreferences.PreviewMaxEdge == 2400 && restoredPreferences.ZoomStepPercent == 50 && restoredPreferences.OverlayPosition == 1 && restoredPreferences.HelpShortcut == "Ctrl+H" && restoredPreferences.ZenShortcut == "F" && restoredPreferences.ResetZoomShortcut == "Ctrl+0", "Custom review display and shortcut preferences persist");
+            Check(restoredPreferences.PreviewMaxEdge == 2400 && restoredPreferences.ZoomStepPercent == 50 && restoredPreferences.ClickZoomPercent == 300 && restoredPreferences.OverlayPosition == 1 && restoredPreferences.HelpShortcut == "Ctrl+H" && restoredPreferences.ZenShortcut == "F" && restoredPreferences.ResetZoomShortcut == "Ctrl+0", "Custom review display and shortcut preferences persist");
         var clearSessionPath = Path.Combine(_root, "clear-session.json");
         var clearCatalogPath = Path.Combine(_root, "clear-catalog.json");
         var clearDialogs = new FakeDialogs { ConfirmClearSession = true };
