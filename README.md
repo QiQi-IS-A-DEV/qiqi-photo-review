@@ -172,8 +172,9 @@ publish.ps1            Script đóng gói portable cho Windows x64
 
 ## Phiên bản hiện tại
 
-**1.16.0**
+**1.16.1**
 
+- Sắp xếp lại header: thao tác chính ở bên trái, điều khiển hỗ trợ ở bên phải.
 - Giao diện ứng dụng sử dụng tiếng Anh thống nhất.
 - Popup hướng dẫn mô tả đầy đủ quy trình JPG → RAW.
 - Cải thiện cách xuống dòng, tooltip và khả năng hiển thị văn bản trong cửa sổ nhỏ.
