@@ -97,8 +97,8 @@ public sealed class MainViewModel : ObservableObject
     public string SelectionSummary => LanguageService.IsVietnamese ? $"Đã chọn {CopyCount:N0}/{MatchedCount:N0} file · {TotalSize}" : $"Selected {CopyCount:N0}/{MatchedCount:N0} files · {TotalSize}";
     public string Readiness => _scan == null ? "Waiting to scan" : CopyCount == 0 ? "No files selected for copying" : "Ready to copy";
     private static string FormatSize(long size) => size >= 1073741824 ? $"{size / 1073741824d:N2} GB" : size >= 1048576 ? $"{size / 1048576d:N1} MB" : $"{size / 1024d:N1} KB";
-    public string TxtPath { get => _txtPath; set { if (Set(ref _txtPath, value)) { InvalidateScan(); Notify(nameof(TxtFileName)); Notify(nameof(TxtFileHint)); } } }
-    public string SourceFolder { get => _sourceFolder; set { if (Set(ref _sourceFolder, value)) { InvalidateScan(); Notify(nameof(DestinationPreview)); Notify(nameof(SourceHint)); } } }
+    public string TxtPath { get => _txtPath; set { if (Set(ref _txtPath, value)) { InvalidateScan(); Notify(nameof(TxtFileName)); Notify(nameof(TxtFileHint)); Notify(nameof(WorkflowHint)); } } }
+    public string SourceFolder { get => _sourceFolder; set { if (Set(ref _sourceFolder, value)) { InvalidateScan(); Notify(nameof(DestinationPreview)); Notify(nameof(SourceHint)); Notify(nameof(WorkflowHint)); } } }
     public bool Comma { get => _comma; set { if (Set(ref _comma, value)) InvalidateScan(); } }
     public bool Space { get => _space; set { if (Set(ref _space, value)) InvalidateScan(); } }
     public bool NewLine { get => _newLine; set { if (Set(ref _newLine, value)) InvalidateScan(); } }
@@ -133,6 +133,17 @@ public sealed class MainViewModel : ObservableObject
     public string ResultSummary => _scan == null ? "Results will appear after scanning." :
         $"Scanned {_scan.ExaminedCount:N0} files · removed {_duplicates:N0} duplicate names · {Files.Sum(f => f.Size) / 1073741824d:N2} GB";
     public string CopyLabel => LanguageService.IsVietnamese ? (CopyCount > 0 ? $"Sao chép {CopyCount:N0} file  →" : "Sao chép ảnh  →") : CopyCount > 0 ? $"Copy {CopyCount:N0} Files  →" : "Copy Photos  →";
+    public string WorkflowHint
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(TxtPath)) return LanguageService.IsVietnamese ? "Bước 1/4 · Thêm danh sách tên TXT" : "Step 1/4 · Add a TXT filename list";
+            if (string.IsNullOrWhiteSpace(SourceFolder)) return LanguageService.IsVietnamese ? "Bước 2/4 · Chọn thư mục ảnh nguồn" : "Step 2/4 · Choose the source photo folder";
+            if (_scan == null) return LanguageService.IsVietnamese ? "Bước 3/4 · Quét và kiểm tra kết quả" : "Step 3/4 · Scan and review the matches";
+            if (_copy == null) return LanguageService.IsVietnamese ? $"Bước 4/4 · Chọn nơi lưu và chép {CopyCount:N0} file" : $"Step 4/4 · Choose a destination and copy {CopyCount:N0} files";
+            return LanguageService.IsVietnamese ? "Hoàn tất · Kiểm tra thư mục đích hoặc bắt đầu phiên mới" : "Complete · Review the destination or start a new session";
+        }
+    }
     public string DestinationPreview
     {
         get { try { return LanguageService.Text(ResolveDestination()); } catch (Exception e) when (e is ArgumentException or IOException or UnauthorizedAccessException or NotSupportedException) { return LanguageService.Text(e.Message); } }
@@ -145,7 +156,7 @@ public sealed class MainViewModel : ObservableObject
     }
     private void NotifyResults()
     {
-        foreach (var name in new[] { nameof(Files), nameof(Missing), nameof(Issues), nameof(RequestedCount), nameof(MatchedCount), nameof(MissingCount), nameof(FilesTab), nameof(MissingTab), nameof(IssuesTab), nameof(HasNoResults), nameof(ResultSummary), nameof(CopyLabel), nameof(TotalSize), nameof(SelectionSummary), nameof(Readiness) }) Notify(name);
+        foreach (var name in new[] { nameof(Files), nameof(Missing), nameof(Issues), nameof(RequestedCount), nameof(MatchedCount), nameof(MissingCount), nameof(FilesTab), nameof(MissingTab), nameof(IssuesTab), nameof(HasNoResults), nameof(ResultSummary), nameof(CopyLabel), nameof(TotalSize), nameof(SelectionSummary), nameof(Readiness), nameof(WorkflowHint) }) Notify(name);
         RefreshFilter();
         NotifySelection();
         Notify(nameof(FormatBreakdown));
@@ -154,7 +165,7 @@ public sealed class MainViewModel : ObservableObject
     private void NotifySelection()
     {
         if (_updatingSelection) return;
-        foreach (var name in new[] { nameof(CopyCount), nameof(CopyLabel), nameof(SelectionSummary), nameof(TotalSize), nameof(Readiness), nameof(ToggleIncludedLabel), nameof(FilterSummary) }) Notify(name);
+        foreach (var name in new[] { nameof(CopyCount), nameof(CopyLabel), nameof(SelectionSummary), nameof(TotalSize), nameof(Readiness), nameof(ToggleIncludedLabel), nameof(FilterSummary), nameof(WorkflowHint) }) Notify(name);
         RefreshCommands();
     }
     private void InvalidateScan()

@@ -69,6 +69,7 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
         ClearSessionCommand = new(ClearSession, () => Photos.Count > 0 && !Busy);
         WindowsCacheCleanupCommand = new(() => Guard(_dialogs.OpenWindowsThumbnailCleanup), () => !Busy);
         UndoCommand = new(Undo, () => _undo.Count > 0 && !Busy);
+        ShowAllCommand = new(() => FilterIndex = 0, () => !Busy && FilterIndex != 0);
     }
 
     public ObservableCollection<ReviewPhoto> Photos { get; } = [];
@@ -102,6 +103,7 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     public RelayCommand ClearSessionCommand { get; }
     public RelayCommand WindowsCacheCleanupCommand { get; }
     public RelayCommand UndoCommand { get; }
+    public RelayCommand ShowAllCommand { get; }
     public string Folder { get => _folder; private set { Set(ref _folder, value); Notify(nameof(FolderName)); } }
     public string FolderName => string.IsNullOrWhiteSpace(Folder) ? LanguageService.Text("No folder imported") : Path.GetFileName(Path.TrimEndingDirectorySeparator(Folder));
     public bool Recursive { get => _recursive; set { if (Set(ref _recursive, value)) QueueSessionSave(); } }
@@ -134,6 +136,21 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     public int ExportPolicy { get => _exportPolicy; set { if (Set(ref _exportPolicy, Math.Clamp(value, 0, ExportPolicies.Length - 1))) QueueSessionSave(); } }
     public bool IsGrid => ViewMode == 0;
     public bool IsLoupe => ViewMode == 1;
+    public bool HasNoPhotos => Photos.Count == 0;
+    public bool HasNoFilteredPhotos => Photos.Count > 0 && FilteredPhotos.Count == 0;
+    public string VisibleScopeSummary => LanguageService.IsVietnamese
+        ? $"Đang hiện {FilteredPhotos.Count:N0}/{Photos.Count:N0} ảnh · {FilteredPhotos.Count(photo => photo.Rating > 0):N0} ảnh đã Rating"
+        : $"Showing {FilteredPhotos.Count:N0}/{Photos.Count:N0} photos · {FilteredPhotos.Count(photo => photo.Rating > 0):N0} rated";
+    public string SendVisibleLabel => LanguageService.IsVietnamese ? $"Gửi {FilteredPhotos.Count:N0} tên đang hiện sang Lọc TXT" : $"Send {FilteredPhotos.Count:N0} visible names to TXT Filter";
+    public string ExportVisibleNamesLabel => LanguageService.IsVietnamese ? $"Xuất {FilteredPhotos.Count:N0} tên đang hiện…" : $"Export {FilteredPhotos.Count:N0} visible filenames…";
+    public string CopyVisibleRatedLabel
+    {
+        get
+        {
+            var count = FilteredPhotos.Count(photo => photo.Rating > 0);
+            return LanguageService.IsVietnamese ? $"Chép {count:N0} ảnh đã Rating đang hiện…" : $"Copy {count:N0} visible rated photos…";
+        }
+    }
     public ReviewPhoto? CurrentPhoto
     {
         get => _current;
@@ -600,10 +617,10 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     }
     private void NotifyCounts()
     {
-        foreach (var name in new[] { nameof(PickCount), nameof(RejectCount), nameof(RatedCount), nameof(ColorCount), nameof(CatalogSummary), nameof(PositionLabel) }) Notify(name);
+        foreach (var name in new[] { nameof(PickCount), nameof(RejectCount), nameof(RatedCount), nameof(ColorCount), nameof(CatalogSummary), nameof(PositionLabel), nameof(HasNoPhotos), nameof(HasNoFilteredPhotos), nameof(VisibleScopeSummary), nameof(SendVisibleLabel), nameof(ExportVisibleNamesLabel), nameof(CopyVisibleRatedLabel) }) Notify(name);
         RefreshCommands();
     }
-    private void RefreshCommands() { foreach (var command in new[] { ImportCommand, PreviousCommand, NextCommand, RevealCommand, CopyNamesCommand, ExportNamesCommand, ExportRatedCommand, OpenExportCommand, CancelCommand, ClearPreviewCacheCommand, ClearSessionCommand, WindowsCacheCleanupCommand, UndoCommand }) command.Refresh(); }
+    private void RefreshCommands() { foreach (var command in new[] { ImportCommand, PreviousCommand, NextCommand, RevealCommand, CopyNamesCommand, ExportNamesCommand, ExportRatedCommand, OpenExportCommand, CancelCommand, ClearPreviewCacheCommand, ClearSessionCommand, WindowsCacheCleanupCommand, UndoCommand, ShowAllCommand }) command.Refresh(); }
     private void Guard(Action action) { try { action(); } catch (Exception e) { Status = e.Message; _dialogs.ShowError(e.Message); } }
     private static string FormatSize(long size) => size >= 1073741824 ? $"{size / 1073741824d:N2} GB" : size >= 1048576 ? $"{size / 1048576d:N1} MB" : $"{size / 1024d:N1} KB";
     public void Dispose()

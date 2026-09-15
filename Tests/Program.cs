@@ -220,6 +220,11 @@ internal static class Program
         Check(reviewVm.FilteredPhotos.Count == 1, "Review filter applies minimum star rating");
         reviewVm.FilterIndex = 7;
         Check(reviewVm.FilteredPhotos.Count == 1 && reviewVm.FilteredPhotos[0].ColorLabel == ReviewColor.Red, "Review filter selects a color label");
+        Check(reviewVm.VisibleScopeSummary.Contains("1/4") && reviewVm.SendVisibleLabel.Contains("1") && reviewVm.CopyVisibleRatedLabel.Contains("1"), "Delivery actions state the visible filter scope and rated-photo count");
+        reviewVm.FilterIndex = 5;
+        Check(reviewVm.HasNoFilteredPhotos && reviewVm.FilteredPhotos.Count == 0, "An empty filter result exposes a recoverable empty state");
+        reviewVm.ShowAllCommand.Execute(null);
+        Check(reviewVm.FilterIndex == 0 && reviewVm.FilteredPhotos.Count == 4 && !reviewVm.HasNoFilteredPhotos, "Show all photos recovers from an empty filter without changing ratings");
         reviewVm.FilterIndex = 0; reviewVm.CurrentPhoto = reviewVm.FilteredPhotos[0]; reviewVm.MoveGrid(3);
         Check(reviewVm.CurrentPhoto == reviewVm.FilteredPhotos[3], "Grid up/down navigation moves by a complete thumbnail row");
         reviewVm.FilterIndex = 7;
@@ -293,6 +298,12 @@ internal static class Program
         Check(((SolidColorBrush)Application.Current.Resources["Surface"]).Color != Colors.White, "Dark mode changes application surface resources");
         vm.DarkMode = false;
         var filterSettingsPath = Path.Combine(_root, "filter-session-settings.json");
+        var guidedFilter = new MainViewModel(dialogs);
+        Check(guidedFilter.WorkflowHint.StartsWith("Step 1/4"), "TXT Filter identifies the first required workflow step");
+        guidedFilter.TxtPath = list;
+        Check(guidedFilter.WorkflowHint.StartsWith("Step 2/4"), "TXT Filter advances its workflow hint after selecting a list");
+        guidedFilter.SourceFolder = source;
+        Check(guidedFilter.WorkflowHint.StartsWith("Step 3/4"), "TXT Filter advances its workflow hint after selecting a source folder");
         var filterSession = new MainViewModel(dialogs, new SettingsService(filterSettingsPath))
         {
             TxtPath = list,
@@ -379,6 +390,7 @@ internal static class Program
         Check(vietnameseVm.Filters[0] == "Tất cả ảnh" && vietnameseVm.ExportPolicies[0].StartsWith("Tự đổi tên"), "Vietnamese view model options preserve stable filter indexes");
         var vietnameseReview = new ReviewWindow(vietnameseVm) { Width = 1360, Height = 820 };
         LanguageService.Apply(vietnameseReview);
+        Check(((FrameworkElement)vietnameseReview.FindName("ReviewEmptyState")).Visibility == Visibility.Visible, "Review presents a localized starting action before a folder is imported");
         await Render(vietnameseReview, Path.Combine(screenshot, "vietnamese-review.png"));
         vietnameseReview.ShowHelpPopup();
         await Render(vietnameseReview, Path.Combine(screenshot, "vietnamese-review-help.png"));

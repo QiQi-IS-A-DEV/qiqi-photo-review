@@ -33,7 +33,7 @@ Lần mở đầu tiên, ứng dụng cho phép chọn **Tiếng Việt** hoặc
 - Chấm từ 0 đến 5 sao.
 - Gắn nhãn màu đỏ, vàng, xanh lá hoặc xanh dương.
 - Đánh dấu **Pick**, **Reject** hoặc bỏ cờ.
-- Lọc theo rating, trạng thái và nhãn màu.
+- Lọc theo rating, trạng thái và nhãn màu; khi bộ lọc không có kết quả, app giải thích nguyên nhân và cho phép trở về tất cả ảnh ngay tại chỗ.
 - Hoàn tác thao tác review gần nhất bằng `Ctrl + Z`.
 - Menu chuột phải hỗ trợ rating, nhãn màu, cờ, xoay, xuất ảnh và mở vị trí file.
 
@@ -51,6 +51,7 @@ Lần mở đầu tiên, ứng dụng cho phép chọn **Tiếng Việt** hoặc
 ### Lọc RAW theo danh sách TXT
 
 - Nhận danh sách tên ảnh từ file `.txt` hoặc trực tiếp từ màn hình Review.
+- Header hiển thị bước đang thực hiện để người dùng biết cần chọn TXT, chọn thư mục nguồn, quét hay sao chép.
 - Có popup hướng dẫn riêng, giải thích tuần tự cách chọn TXT, thiết lập quy tắc khớp tên, quét và sao chép.
 - Có thể bỏ phần mở rộng để tên JPG khớp với file RAW cùng tên.
 - Hỗ trợ tìm trong thư mục con và chọn nhiều loại file cùng lúc.
@@ -129,7 +130,7 @@ dotnet build PhotoFileFilter.sln -c Release
 dotnet run --project Tests/PhotoFileFilter.Tests.csproj -c Release
 ```
 
-Bộ kiểm thử hiện gồm **137 kiểm tra**, bao phủ parser TXT, quét thư mục, bảo vệ ảnh gốc, chính sách trùng tên, session Review và TXT Filter, chuyển ngôn ngữ, rating, nhãn màu, xoay, zoom, histogram và bố cục WPF.
+Bộ kiểm thử hiện gồm **144 kiểm tra**, bao phủ parser TXT, quét thư mục, bảo vệ ảnh gốc, chính sách trùng tên, session Review và TXT Filter, chuyển ngôn ngữ, rating, nhãn màu, phạm vi export, xoay, zoom, histogram và bố cục WPF.
 
 ## Đóng gói bản portable
 
@@ -190,7 +191,13 @@ publish.ps1            Script đóng gói portable cho Windows x64
 
 ## Phiên bản hiện tại
 
-**1.19.0**
+**1.20.0**
+
+- Tinh chỉnh giao diện theo tinh thần Lightroom Classic với bề mặt phẳng, góc bo gọn và độ tương phản rõ hơn.
+- Thêm trạng thái bắt đầu ngay trong Review, kèm nút Import và hướng dẫn bước tiếp theo.
+- Thêm trạng thái riêng khi bộ lọc không có ảnh, cho phép trở về toàn bộ ảnh mà không ảnh hưởng Rating.
+- Làm rõ phạm vi bàn giao: tên file lấy từ các ảnh đang hiện; thao tác chép ảnh chỉ lấy ảnh đã Rating trong bộ lọc hiện tại.
+- Hiển thị tiến độ bốn bước trên màn hình TXT Filter để làm rõ thao tác tiếp theo.
 
 - Thêm lựa chọn Tiếng Việt/English ở lần chạy đầu tiên.
 - Cho phép đổi ngôn ngữ trong Settings, xác nhận rồi tự khởi động lại.

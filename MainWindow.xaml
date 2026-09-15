@@ -22,7 +22,7 @@
             <Grid>
                 <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                 <Border Background="#FFFFFF" CornerRadius="10" Width="46" Height="46" Margin="0,0,14,0"><Image Source="Assets/qiqistudio_nobackground.png" RenderOptions.BitmapScalingMode="HighQuality" AutomationProperties.Name="Logo QiQi Studio"/></Border>
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center"><Button Content="Help" Click="OnHelp" Margin="0,0,8,0" Padding="12,8" ToolTip="Open the TXT Filter guide (F1)"/><Button Content="Clear session" Click="OnClearFilterSession" Margin="0,0,10,0" Padding="12,8" ToolTip="Clear saved paths, the TXT list, and current results"/><CheckBox x:Name="ThemeToggle" Content="Dark theme" IsChecked="{Binding DarkMode}" Foreground="{DynamicResource CBDE2CE}" FontSize="11" Margin="0,0,18,0"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Filter Photos by TXT List" Foreground="White" FontWeight="SemiBold" FontSize="22"/><TextBlock Text="QIQI STUDIO  /  1.19" Foreground="{DynamicResource CACBFC3}" FontSize="10"/></StackPanel></StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center"><Button Content="Help" Click="OnHelp" Margin="0,0,8,0" Padding="12,8" ToolTip="Open the TXT Filter guide (F1)"/><Button Content="Clear session" Click="OnClearFilterSession" Margin="0,0,10,0" Padding="12,8" ToolTip="Clear saved paths, the TXT list, and current results"/><CheckBox x:Name="ThemeToggle" Content="Dark theme" IsChecked="{Binding DarkMode}" Foreground="{DynamicResource CACBFC3}" FontSize="11" Margin="0,0,18,0"/><StackPanel VerticalAlignment="Center"><TextBlock Text="Filter Photos by TXT List" Foreground="White" FontWeight="SemiBold" FontSize="20"/><StackPanel Orientation="Horizontal"><TextBlock Text="QIQI STUDIO  ·  1.20" Foreground="{DynamicResource CACBFC3}" FontSize="9" Margin="0,0,10,0"/><TextBlock Text="{Binding WorkflowHint}" Foreground="#7FC5EA" FontSize="10" FontWeight="SemiBold" MaxWidth="260" TextTrimming="CharacterEllipsis" ToolTip="{Binding WorkflowHint}"/></StackPanel></StackPanel></StackPanel>
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button x:Name="ReviewNavigationButton" Content="Import &amp; Review  ·  Ctrl+1" Click="OnOpenReview" Margin="0,0,7,0" Padding="14,8" ToolTip="Switch to the Import &amp; Review workspace (Ctrl+1)"/>
                     <Border Background="#287CAD" BorderBrush="#3B9BD6" BorderThickness="1" CornerRadius="4" Padding="14,8" Margin="0,0,12,0"><TextBlock Text="TXT Filter  ·  Ctrl+2" Foreground="White" FontWeight="SemiBold" TextWrapping="NoWrap"/></Border>
@@ -30,7 +30,7 @@
                 </StackPanel>
             </Grid>
         </Border>
-        <Grid Grid.Row="1" Margin="22,20,22,18">
+        <Grid Grid.Row="1" Margin="18,16,18,14">
             <Grid.ColumnDefinitions><ColumnDefinition Width="330"/><ColumnDefinition Width="18"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
 
             <!-- The settings column scrolls independently, leaving the results and copy action in view. -->
@@ -187,7 +187,7 @@
                             </TabControl>
                             <Border Background="{DynamicResource Surface}" Margin="0,43,0,0" Visibility="{Binding HasNoResults, Converter={StaticResource BoolVisibility}}" IsHitTestVisible="False">
                                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                    <Border Background="{DynamicResource CEFF5F0}" Width="48" Height="48" CornerRadius="16" HorizontalAlignment="Center" Margin="0,0,0,11"><TextBlock Text="&#xEB9F;" FontFamily="Segoe MDL2 Assets" FontSize="23" Foreground="{DynamicResource C8CA999}" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                            <Border Background="{DynamicResource CEFF5F0}" Width="48" Height="48" CornerRadius="6" HorizontalAlignment="Center" Margin="0,0,0,11"><TextBlock Text="&#xEB9F;" FontFamily="Segoe MDL2 Assets" FontSize="23" Foreground="{DynamicResource C8CA999}" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                                     <TextBlock Text="Bring every selected photo into one place." FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center"/>
                                     <TextBlock Text="Add a filename list and scan your source folder to begin." Style="{StaticResource Caption}" FontSize="11" Margin="0,5,0,0" HorizontalAlignment="Center"/>
                                 </StackPanel>
