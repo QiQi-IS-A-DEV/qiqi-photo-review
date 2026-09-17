@@ -2,9 +2,10 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:review="clr-namespace:PhotoFileFilter.Review"
-        Title="QiQi Studio · Import &amp; Review" Icon="Assets/qiqistudio.ico"
+        xmlns:services="clr-namespace:PhotoFileFilter.Services"
+        Title="{x:Static services:AppInfo.ReviewTitle}" Icon="Assets/qiqistudio.ico"
         Width="1480" Height="920" MinWidth="1080" MinHeight="680"
-        WindowStartupLocation="CenterOwner" Background="#202020" Foreground="#E6E6E6"
+        WindowStartupLocation="CenterScreen" Background="#202020" Foreground="#E6E6E6"
         FontFamily="Segoe UI" FontSize="12" PreviewKeyDown="OnReviewKeyDown"
         AllowDrop="True" PreviewDragOver="OnReviewDragOver" Drop="OnReviewDrop">
     <Window.Resources>

@@ -33,6 +33,8 @@ public partial class ReviewWindow : Window
         _initialFolder = Directory.Exists(initialFolder) ? initialFolder : null;
         _viewModel = viewModel ?? new(new DialogService()); DataContext = _viewModel;
         LanguageCombo.SelectedValue = LanguageService.CurrentLanguage;
+        MinWidth = Math.Min(MinWidth, SystemParameters.WorkArea.Width);
+        MinHeight = Math.Min(MinHeight, SystemParameters.WorkArea.Height);
         Width = Math.Min(Width, SystemParameters.WorkArea.Width); Height = Math.Min(Height, SystemParameters.WorkArea.Height);
         Loaded += async (_, _) =>
         {
@@ -229,14 +231,14 @@ public partial class ReviewWindow : Window
         if (_filterWindow.DataContext is ViewModels.MainViewModel filterTheme) filterTheme.DarkMode = true;
         ReviewScreen.Visibility = Visibility.Collapsed;
         FilterHost.Visibility = Visibility.Visible;
-        Title = LanguageService.Text("QiQi Studio · Filter Photos by TXT List");
+        Title = AppInfo.FilterTitle;
         FilterHost.Focus();
     }
     private void ShowReviewScreen()
     {
         FilterHost.Visibility = Visibility.Collapsed;
         ReviewScreen.Visibility = Visibility.Visible;
-        Title = LanguageService.Text("QiQi Studio · Import & Review");
+        Title = AppInfo.ReviewTitle;
         Focus();
     }
     private void OnClose(object sender, RoutedEventArgs e) => Close();

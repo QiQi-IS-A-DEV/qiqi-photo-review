@@ -437,7 +437,7 @@ internal static class Program
         typeof(ReviewWindow).GetMethod("OnSendFilteredToFilter", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.Invoke(reviewWindow, [reviewWindow, new RoutedEventArgs()]);
         var embeddedFilter = (FrameworkElement)((System.Windows.Controls.ContentControl)reviewWindow.FindName("FilterHost")).Content;
         var embeddedVm = (MainViewModel)embeddedFilter.DataContext;
-        Check(((FrameworkElement)reviewWindow.FindName("FilterHost")).Visibility == Visibility.Visible && ((FrameworkElement)reviewWindow.FindName("ReviewScreen")).Visibility == Visibility.Collapsed, "TXT filter switches inside the same application window");
+        Check(((FrameworkElement)reviewWindow.FindName("FilterHost")).Visibility == Visibility.Visible && ((FrameworkElement)reviewWindow.FindName("ReviewScreen")).Visibility == Visibility.Collapsed && reviewWindow.Title == $"QiQi Studio · Filter Photos by TXT List · v{typeof(ReviewWindow).Assembly.GetName().Version!.ToString(3)}", "TXT filter switches inside the same application window and retains the build version in its title");
         Check(File.Exists(embeddedVm.TxtPath) && embeddedVm.Extensions.Where(option => option.Selected).All(option => option.Name is "ARW" or "CR2" or "CR3" or "NEF" or "RAF" or "ORF" or "RW2" or "DNG"), "Sending review names fills the TXT input and selects the RAW preset");
         var embeddedFilterWindow = embeddedFilter.Tag as MainWindow ?? throw new Exception("Embedded TXT Filter owner was not retained.");
         embeddedFilterWindow.ShowHelpPopup();
@@ -446,14 +446,14 @@ internal static class Program
         embeddedFilterWindow.HideHelpPopup();
         await Render(reviewWindow, Path.Combine(screenshot, "filter-embedded.png"));
         typeof(ReviewWindow).GetMethod("ShowReviewScreen", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.Invoke(reviewWindow, null);
-        Check(((FrameworkElement)reviewWindow.FindName("ReviewScreen")).Visibility == Visibility.Visible, "Review screen restores without opening another window");
+        Check(((FrameworkElement)reviewWindow.FindName("ReviewScreen")).Visibility == Visibility.Visible && reviewWindow.Title == $"QiQi Studio · Import & Review · v{typeof(ReviewWindow).Assembly.GetName().Version!.ToString(3)}", "Review screen restores in the same window with its versioned title");
         LanguageService.UseForCurrentProcess(LanguageService.Vietnamese);
         Check(LanguageService.Text("Help") == "Hướng dẫn" && LanguageService.Text("Filter Photos by TXT List") == "Lọc ảnh theo danh sách TXT", "Vietnamese language catalog translates both workspaces");
         using var vietnameseVm = new ReviewViewModel(reviewDialogs, new ReviewCatalogService(Path.Combine(_root, "vi-catalog.json")), new ReviewSessionService(Path.Combine(_root, "vi-session.json")), new ReviewPreferencesService(Path.Combine(_root, "vi-preferences.json")));
         Check(vietnameseVm.Filters[0] == "Tất cả ảnh" && vietnameseVm.ExportPolicies[0].StartsWith("Tự đổi tên"), "Vietnamese view model options preserve stable filter indexes");
         var vietnameseReview = new ReviewWindow(vietnameseVm) { Width = 1360, Height = 820 };
         LanguageService.Apply(vietnameseReview);
-        Check(((FrameworkElement)vietnameseReview.FindName("ReviewEmptyState")).Visibility == Visibility.Visible, "Review presents a localized starting action before a folder is imported");
+        Check(((FrameworkElement)vietnameseReview.FindName("ReviewEmptyState")).Visibility == Visibility.Visible && vietnameseReview.Title == $"QiQi Studio · Nhập & Review · v{typeof(ReviewWindow).Assembly.GetName().Version!.ToString(3)}", "Review presents a localized starting action and versioned title before a folder is imported");
         await Render(vietnameseReview, Path.Combine(screenshot, "vietnamese-review.png"));
         vietnameseReview.ShowHelpPopup();
         await Render(vietnameseReview, Path.Combine(screenshot, "vietnamese-review-help.png"));

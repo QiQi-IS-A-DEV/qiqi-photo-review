@@ -194,6 +194,11 @@ publish.ps1            Script đóng gói portable cho Windows x64
 
 ## Phiên bản hiện tại
 
+**1.21.1**
+
+- Hiển thị số phiên bản thực tế trên thanh tiêu đề của Review và Lọc TXT, tự lấy từ bản build.
+- Cửa sổ app mở ở giữa màn hình và điều chỉnh kích thước để vừa vùng làm việc.
+
 **1.21.0**
 
 - Sửa import mới bị ẩn ảnh do giữ bộ lọc màu hoặc Rating từ thư mục trước; mở lại phiên vẫn khôi phục bộ lọc đã lưu.
