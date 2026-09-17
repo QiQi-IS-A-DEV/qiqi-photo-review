@@ -8,6 +8,8 @@ using PhotoFileFilter.ViewModels;
 
 namespace PhotoFileFilter.Review;
 
+public sealed record PreviewQualityOption(int MaxEdge, string Label);
+
 public sealed class ReviewViewModel : ObservableObject, IDisposable
 {
     private readonly IDialogService _dialogs;
@@ -17,6 +19,10 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     private readonly ReviewImportService _importer = new();
     private readonly PreviewService _preview = new();
     private readonly HistogramService _histogram = new();
+    private readonly SemaphoreSlim _previewDecodeGate = new(1, 1);
+    private ReviewPhoto? _requestedPreviewPhoto;
+    private int? _requestedPreviewEdge;
+    private bool _isPreviewLoading;
     private CancellationTokenSource? _importCancellation;
     private CancellationTokenSource? _previewCancellation;
     private CancellationTokenSource? _sessionSaveCancellation;
@@ -36,8 +42,8 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     private string _overlayMessage = "";
     private string _histogramSummary = LanguageService.Text("No histogram data"), _histogramAssessment = LanguageService.Text("Select a photo to analyze its tonal range.");
     private bool _overlayVisible;
-    private int _previewMaxEdge = 1800, _zoomStepPercent = 25, _clickZoomPercent = 200, _overlayDurationMs = 950, _overlayPosition, _defaultView;
-    private bool _startWithPanelsHidden, _histogramEnabled = true;
+    private int _previewMaxEdge = 2400, _zoomStepPercent = 25, _clickZoomPercent = 200, _overlayDurationMs = 950, _overlayPosition, _defaultView;
+    private bool _startWithPanelsHidden, _histogramEnabled = true, _fullResolutionOnZoom = true;
     private string _helpShortcut = "F1", _zenShortcut = "Tab", _undoShortcut = "Ctrl+Z", _resetZoomShortcut = "` + Ctrl+0", _gridShortcut = "G", _loupeShortcut = "E";
     private readonly List<UndoEntry> _undo = [];
 
@@ -76,7 +82,16 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     public ObservableCollection<ReviewPhoto> FilteredPhotos { get; } = [];
     public string[] Filters { get; } = LanguageService.Texts("All Photos", "Pick", "≥ 1 Star", "≥ 3 Stars", "5 Stars", "Reject", "Unrated", "Red Label", "Yellow Label", "Green Label", "Blue Label");
     public string[] ExportPolicies { get; } = LanguageService.Texts("Rename — keep both", "Skip existing files", "Replace destination files");
-    public int[] PreviewSizeOptions { get; } = [1200, 1800, 2400];
+    public int[] PreviewSizeOptions { get; } = [1200, 1800, 2400, 3600, 4800, 0];
+    public PreviewQualityOption[] PreviewQualityOptions { get; } =
+    [
+        new(1200, LanguageService.Text("Fast · 1,200 px")),
+        new(1800, LanguageService.Text("Balanced · 1,800 px")),
+        new(2400, LanguageService.Text("Detailed · 2,400 px")),
+        new(3600, LanguageService.Text("High · 3,600 px")),
+        new(4800, LanguageService.Text("Ultra · 4,800 px")),
+        new(0, LanguageService.Text("Original · full resolution"))
+    ];
     public int[] ZoomStepOptions { get; } = [10, 25, 50];
     public int[] ClickZoomOptions { get; } = [125, 150, 200, 300, 400, 800];
     public int[] OverlayDurationOptions { get; } = [600, 950, 1500];
@@ -112,19 +127,21 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     public string PreviewMessage { get => _previewMessage; private set => Set(ref _previewMessage, value); }
     public BitmapSource? PreviewImage { get => _previewImage; private set { Set(ref _previewImage, value); Notify(nameof(HasPreview)); } }
     public bool HasPreview => PreviewImage != null;
+    public bool IsPreviewLoading { get => _isPreviewLoading; private set => Set(ref _isPreviewLoading, value); }
     public BitmapSource? HistogramImage { get => _histogramImage; private set => Set(ref _histogramImage, value); }
     public string HistogramSummary { get => _histogramSummary; private set => Set(ref _histogramSummary, value); }
     public string HistogramAssessment { get => _histogramAssessment; private set => Set(ref _histogramAssessment, value); }
     public string OverlayMessage { get => _overlayMessage; private set => Set(ref _overlayMessage, value); }
     public bool OverlayVisible { get => _overlayVisible; private set => Set(ref _overlayVisible, value); }
-    public int PreviewMaxEdge { get => _previewMaxEdge; set { if (Set(ref _previewMaxEdge, PreviewSizeOptions.Contains(value) ? value : 1800)) SavePreferences(); } }
+    public int PreviewMaxEdge { get => _previewMaxEdge; set { if (Set(ref _previewMaxEdge, PreviewSizeOptions.Contains(value) ? value : 2400)) { SavePreferences(); _ = LoadCurrentPreviewAsync(); } } }
+    public bool FullResolutionOnZoom { get => _fullResolutionOnZoom; set { if (Set(ref _fullResolutionOnZoom, value)) { SavePreferences(); _ = LoadCurrentPreviewAsync(); } } }
     public int ZoomStepPercent { get => _zoomStepPercent; set { if (Set(ref _zoomStepPercent, ZoomStepOptions.Contains(value) ? value : 25)) SavePreferences(); } }
     public int ClickZoomPercent { get => _clickZoomPercent; set { if (Set(ref _clickZoomPercent, ClickZoomOptions.Contains(value) ? value : 200)) SavePreferences(); } }
     public int OverlayDurationMs { get => _overlayDurationMs; set { if (Set(ref _overlayDurationMs, OverlayDurationOptions.Contains(value) ? value : 950)) SavePreferences(); } }
     public int OverlayPosition { get => _overlayPosition; set { if (Set(ref _overlayPosition, Math.Clamp(value, 0, 1))) SavePreferences(); } }
     public int DefaultView { get => _defaultView; set { if (Set(ref _defaultView, Math.Clamp(value, 0, 1))) SavePreferences(); } }
     public bool StartWithPanelsHidden { get => _startWithPanelsHidden; set { if (Set(ref _startWithPanelsHidden, value)) SavePreferences(); } }
-    public bool HistogramEnabled { get => _histogramEnabled; set { if (Set(ref _histogramEnabled, value)) { if (!value) { HistogramImage = null; HistogramSummary = "Histogram disabled"; HistogramAssessment = ""; } else _ = LoadCurrentPreviewAsync(); SavePreferences(); } } }
+    public bool HistogramEnabled { get => _histogramEnabled; set { if (Set(ref _histogramEnabled, value)) { if (!value) { HistogramImage = null; HistogramSummary = LanguageService.Text("Histogram disabled"); HistogramAssessment = ""; } else _ = LoadCurrentPreviewAsync(force: true); SavePreferences(); } } }
     public string HelpShortcut { get => _helpShortcut; set { if (Set(ref _helpShortcut, Choice(value, HelpShortcutOptions, "F1"))) SavePreferences(); } }
     public string ZenShortcut { get => _zenShortcut; set { if (Set(ref _zenShortcut, Choice(value, ZenShortcutOptions, "Tab"))) SavePreferences(); } }
     public string UndoShortcut { get => _undoShortcut; set { if (Set(ref _undoShortcut, Choice(value, UndoShortcutOptions, "Ctrl+Z"))) SavePreferences(); } }
@@ -132,7 +149,7 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     public string GridShortcut { get => _gridShortcut; set { if (Set(ref _gridShortcut, Choice(value, GridShortcutOptions, "G"))) SavePreferences(); } }
     public string LoupeShortcut { get => _loupeShortcut; set { if (Set(ref _loupeShortcut, Choice(value, LoupeShortcutOptions, "E"))) SavePreferences(); } }
     public int FilterIndex { get => _filterIndex; set { if (Set(ref _filterIndex, Math.Clamp(value, 0, Filters.Length - 1))) { ApplyFilter(); QueueSessionSave(); } } }
-    public int ViewMode { get => _viewMode; set { if (Set(ref _viewMode, Math.Clamp(value, 0, 1))) { Notify(nameof(IsGrid)); Notify(nameof(IsLoupe)); QueueSessionSave(); } } }
+    public int ViewMode { get => _viewMode; set { if (Set(ref _viewMode, Math.Clamp(value, 0, 1))) { Notify(nameof(IsGrid)); Notify(nameof(IsLoupe)); QueueSessionSave(); _ = LoadCurrentPreviewAsync(); } } }
     public int ExportPolicy { get => _exportPolicy; set { if (Set(ref _exportPolicy, Math.Clamp(value, 0, ExportPolicies.Length - 1))) QueueSessionSave(); } }
     public bool IsGrid => ViewMode == 0;
     public bool IsLoupe => ViewMode == 1;
@@ -195,7 +212,7 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     private async Task ImportCoreAsync(string displayFolder, string[] sourceInputs, Func<CancellationToken, ReviewImportResult> import)
     {
         if (Busy) return;
-        _importCancellation?.Dispose(); _importCancellation = new();
+        _importCancellation?.Cancel(); _importCancellation?.Dispose(); _importCancellation = new();
         Busy = true; Status = "Importing photos…"; PreviewImage = null; CurrentPhoto = null;
         var token = _importCancellation.Token;
         try
@@ -209,10 +226,12 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
                 { photo.Rating = mark.Rating; photo.Flag = mark.Flag; photo.ColorLabel = mark.ColorLabel; photo.Rotation = mark.Rotation; }
                 Photos.Add(photo);
             }
+            // A new import is a new browsing context. A previous label/rating filter must not hide it.
+            // Session restoration applies the saved filter again after import.
+            _filterIndex = 0; Notify(nameof(FilterIndex));
             Folder = displayFolder; _sourceInputs = sourceInputs; ApplyFilter();
             Status = result.Warnings.Count == 0 ? $"Imported {Photos.Count:N0} photos." : $"Imported {Photos.Count:N0} photos · {result.Warnings.Count:N0} items could not be read.";
             SaveSessionNow();
-            _ = WarmThumbnailsAsync(Photos.Take(120).ToArray(), token);
         }
         catch (OperationCanceledException) { Status = "Import canceled."; }
         catch (Exception e) { Status = e.Message; _dialogs.ShowError(e.Message); }
@@ -273,7 +292,8 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
 
     private void ApplyPreferences(ReviewPreferences value)
     {
-        _previewMaxEdge = PreviewSizeOptions.Contains(value.PreviewMaxEdge) ? value.PreviewMaxEdge : 1800;
+        _previewMaxEdge = PreviewSizeOptions.Contains(value.PreviewMaxEdge) ? value.PreviewMaxEdge : 2400;
+        _fullResolutionOnZoom = value.FullResolutionOnZoom;
         _zoomStepPercent = ZoomStepOptions.Contains(value.ZoomStepPercent) ? value.ZoomStepPercent : 25;
         _clickZoomPercent = ClickZoomOptions.Contains(value.ClickZoomPercent) ? value.ClickZoomPercent : 200;
         _overlayDurationMs = OverlayDurationOptions.Contains(value.OverlayDurationMs) ? value.OverlayDurationMs : 950;
@@ -291,13 +311,14 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     private void SavePreferences()
     {
         _preferencesService.Save(new(PreviewMaxEdge, ZoomStepPercent, OverlayDurationMs, OverlayPosition, DefaultView, StartWithPanelsHidden, HistogramEnabled,
-            HelpShortcut, ZenShortcut, UndoShortcut, ResetZoomShortcut, GridShortcut, LoupeShortcut, ClickZoomPercent));
+            HelpShortcut, ZenShortcut, UndoShortcut, ResetZoomShortcut, GridShortcut, LoupeShortcut, ClickZoomPercent, FullResolutionOnZoom));
     }
 
     public void ResetPreferences()
     {
         ApplyPreferences(new());
-        foreach (var name in new[] { nameof(PreviewMaxEdge), nameof(ZoomStepPercent), nameof(ClickZoomPercent), nameof(OverlayDurationMs), nameof(OverlayPosition), nameof(DefaultView), nameof(StartWithPanelsHidden), nameof(HistogramEnabled), nameof(HelpShortcut), nameof(ZenShortcut), nameof(UndoShortcut), nameof(ResetZoomShortcut), nameof(GridShortcut), nameof(LoupeShortcut), nameof(ViewMode), nameof(IsGrid), nameof(IsLoupe) }) Notify(name);
+        foreach (var name in new[] { nameof(PreviewMaxEdge), nameof(FullResolutionOnZoom), nameof(ZoomStepPercent), nameof(ClickZoomPercent), nameof(OverlayDurationMs), nameof(OverlayPosition), nameof(DefaultView), nameof(StartWithPanelsHidden), nameof(HistogramEnabled), nameof(HelpShortcut), nameof(ZenShortcut), nameof(UndoShortcut), nameof(ResetZoomShortcut), nameof(GridShortcut), nameof(LoupeShortcut), nameof(ViewMode), nameof(IsGrid), nameof(IsLoupe) }) Notify(name);
+        _ = LoadCurrentPreviewAsync(force: true);
         SavePreferences(); Status = "Restored the default Photo Review settings.";
     }
 
@@ -347,7 +368,7 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     public double Zoom { get => _zoom; private set { if (Set(ref _zoom, Math.Clamp(value, 0.25, 8))) Notify(nameof(ZoomLabel)); } }
     public double PanX { get => _panX; private set => Set(ref _panX, Math.Clamp(value, -10000, 10000)); }
     public double PanY { get => _panY; private set => Set(ref _panY, Math.Clamp(value, -10000, 10000)); }
-    public string ZoomLabel => $"{Zoom * 100:0}%";
+    public string ZoomLabel => Zoom == 1 ? "Fit" : $"{Zoom * 100:0}% Fit";
     public void ZoomBy(int direction)
     {
         var factor = 1 + ZoomStepPercent / 100d;
@@ -368,6 +389,7 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
         var nextPanY = anchorY - (anchorY - PanY) * ratio;
         Zoom = newZoom;
         PanTo(nextPanX, nextPanY);
+        _ = LoadCurrentPreviewAsync();
     }
     public void PanTo(double x, double y)
     {
@@ -375,7 +397,7 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
         PanX = x; PanY = y;
     }
     public void ResetPan() { PanX = 0; PanY = 0; }
-    public void ResetZoom() { Zoom = 1; ResetPan(); }
+    public void ResetZoom() { Zoom = 1; ResetPan(); _ = LoadCurrentPreviewAsync(); }
     public void Rotate(IEnumerable<ReviewPhoto> photos, int degrees)
     {
         var targets = ValidTargets(photos);
@@ -479,8 +501,8 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
 
     private void ClearPreviewCache()
     {
-        _previewCancellation?.Cancel();
-        ResetZoom(); PreviewImage = null; HistogramImage = null; HistogramSummary = "No histogram data"; HistogramAssessment = "Preview memory released."; PreviewMessage = "Preview memory released. Select a photo to load it again.";
+        _previewCancellation?.Cancel(); _requestedPreviewEdge = null; IsPreviewLoading = false;
+        Zoom = 1; ResetPan(); PreviewImage = null; HistogramImage = null; HistogramSummary = "No histogram data"; HistogramAssessment = "Preview memory released."; PreviewMessage = "Preview memory released. Select a photo to load it again.";
         foreach (var photo in Photos) photo.Thumbnail = null;
         GC.Collect(GC.MaxGeneration, GCCollectionMode.Optimized, false);
         Status = "Released the app preview cache from memory.";
@@ -575,27 +597,56 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
         7 => photo.ColorLabel == ReviewColor.Red, 8 => photo.ColorLabel == ReviewColor.Yellow,
         9 => photo.ColorLabel == ReviewColor.Green, 10 => photo.ColorLabel == ReviewColor.Blue, _ => true
     };
-    private async Task LoadCurrentPreviewAsync()
+    private async Task LoadCurrentPreviewAsync(bool force = false)
     {
+        if (_disposed) return;
+        var photo = CurrentPhoto;
+        var maxEdge = FullResolutionOnZoom && IsLoupe && Zoom > 1 ? 0 : PreviewMaxEdge;
+        if (!force && photo == _requestedPreviewPhoto && maxEdge == _requestedPreviewEdge) return;
         _previewCancellation?.Cancel(); _previewCancellation?.Dispose(); _previewCancellation = new();
-        var photo = CurrentPhoto; var token = _previewCancellation.Token;
-        PreviewImage = photo?.Thumbnail; PreviewMessage = photo == null ? "" : "Loading preview…";
-        if (photo == null) return;
+        var token = _previewCancellation.Token;
+        if (photo != _requestedPreviewPhoto || PreviewImage == null) PreviewImage = photo?.Thumbnail;
+        _requestedPreviewPhoto = photo; _requestedPreviewEdge = maxEdge;
+        PreviewMessage = photo == null ? "" : LanguageService.Text(maxEdge == 0 ? "Loading full-resolution preview…" : "Loading preview…");
+        IsPreviewLoading = photo != null;
+        if (photo == null) { PreviewImage = null; return; }
         try
         {
-            var result = await Task.Run(() => _preview.Load(photo.FullPath, token, PreviewMaxEdge), token);
-            if (token.IsCancellationRequested || CurrentPhoto != photo) return;
-            PreviewImage = result.Image; PreviewMessage = result.Description;
-            if (photo.Thumbnail == null && result.Image != null) photo.Thumbnail = result.Image;
-            if (result.Image != null && HistogramEnabled)
+            var calculateHistogram = HistogramEnabled;
+            var decoded = await Task.Run(async () =>
             {
-                var histogram = await Task.Run(() => _histogram.Calculate(result.Image, token), token);
-                if (token.IsCancellationRequested || CurrentPhoto != photo) return;
+                // A canceled codec may still finish its synchronous decode. Serialize these jobs
+                // so fast navigation cannot queue several full-resolution buffers at once.
+                await _previewDecodeGate.WaitAsync(token);
+                try
+                {
+                    token.ThrowIfCancellationRequested();
+                    var result = _preview.Load(photo.FullPath, token, maxEdge);
+                    token.ThrowIfCancellationRequested();
+                    var thumbnail = result.Image == null ? null : PreviewService.CreateThumbnail(result.Image);
+                    var histogram = result.Image != null && calculateHistogram ? _histogram.Calculate(result.Image, token) : null;
+                    return (result, thumbnail, histogram);
+                }
+                finally { _previewDecodeGate.Release(); }
+            }, token);
+            if (token.IsCancellationRequested || CurrentPhoto != photo) return;
+            var result = decoded.result;
+            PreviewImage = result.Image; PreviewMessage = result.Description;
+            if (decoded.thumbnail != null) photo.Thumbnail = decoded.thumbnail;
+            if (HistogramEnabled && decoded.histogram is { } histogram)
+            {
                 HistogramImage = histogram.Chart; HistogramSummary = histogram.Summary; HistogramAssessment = histogram.Assessment;
             }
-            else { HistogramImage = null; HistogramSummary = "No data"; HistogramAssessment = "The current preview could not be decoded."; }
+            else { HistogramImage = null; HistogramSummary = LanguageService.Text(HistogramEnabled ? "No data" : "Histogram disabled"); HistogramAssessment = result.Image == null ? LanguageService.Text("The current preview could not be decoded.") : ""; }
         }
         catch (OperationCanceledException) { }
+        catch (Exception e)
+        {
+            if (token.IsCancellationRequested || CurrentPhoto != photo) return;
+            _requestedPreviewEdge = null;
+            PreviewMessage = LanguageService.IsVietnamese ? "Không thể tải preview. Thử giảm chất lượng trong Cài đặt. " + e.Message : "Could not load the preview. Try a lower quality in Settings. " + e.Message;
+        }
+        finally { if (!token.IsCancellationRequested) IsPreviewLoading = false; }
     }
     private async Task WarmThumbnailsAsync(IReadOnlyList<ReviewPhoto> photos, CancellationToken token)
     {

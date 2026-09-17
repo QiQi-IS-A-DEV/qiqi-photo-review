@@ -21,6 +21,15 @@ public static class LanguageService
 
     private static readonly Dictionary<string, string> Vi = new(StringComparer.Ordinal)
     {
+        ["Fast · 1,200 px"]="Nhanh · 1.200 px", ["Balanced · 1,800 px"]="Cân bằng · 1.800 px", ["Detailed · 2,400 px"]="Chi tiết · 2.400 px",
+        ["For sharper detail: open Settings, choose Preview quality (up to Original), or enable Load original resolution when zooming. Quality changes apply immediately."]="Để soi rõ hơn: mở Cài đặt, chọn Chất lượng preview (tối đa Original), hoặc bật Tải độ phân giải gốc khi zoom. Thay đổi được áp dụng ngay.",
+        ["High · 3,600 px"]="Cao · 3.600 px", ["Ultra · 4,800 px"]="Rất cao · 4.800 px", ["Original · full resolution"]="Original · Độ phân giải gốc",
+        ["Preview quality"]="Chất lượng preview", ["Load original resolution when zooming"]="Tải độ phân giải gốc khi zoom",
+        ["Quality applies immediately to the current photo. Original keeps all decoded pixels and uses more RAM. Only the current photo is loaded at this quality."]="Áp dụng ngay cho ảnh đang xem. Original giữ toàn bộ pixel đã giải mã và dùng nhiều RAM hơn. Chất lượng này chỉ áp dụng cho ảnh đang xem.",
+        ["When zooming in Loupe, load full resolution for detail; return to the selected quality at Fit."]="Khi zoom trong Loupe, tải ảnh đầy đủ để soi chi tiết; trở về chất lượng đã chọn khi về Fit.",
+        ["RAW detail depends on the Windows codec or available JPG/embedded preview. The actual dimensions and source are shown below the image."]="Chi tiết RAW phụ thuộc codec Windows hoặc ảnh JPG/preview nhúng có sẵn. Kích thước và nguồn preview thực tế được ghi dưới ảnh.",
+        ["Loading full-resolution preview…"]="Đang tải preview độ phân giải gốc…", ["Embedded RAW preview"]="Preview nhúng trong RAW", ["RAW via Windows codec"]="RAW qua codec Windows",
+        ["The current preview could not be decoded."]="Không thể giải mã preview ảnh này.", ["Reset zoom to Fit"]="Đưa zoom về Fit", ["Zoom is relative to Fit, not a 1:1 pixel scale."]="Mức zoom tính theo Fit, không phải tỷ lệ pixel 1:1.",
         ["Help"]="Hướng dẫn", ["Settings"]="Cài đặt", ["Close"]="Đóng", ["Close Guide"]="Đóng hướng dẫn", ["Restore Defaults"]="Khôi phục mặc định",
         ["QiQi Studio · Import & Review"]="QiQi Studio · Nhập & Review", ["QiQi Studio · Filter Photos by TXT List"]="QiQi Studio · Lọc ảnh theo TXT",
         ["Hide panels"]="Ẩn bảng", ["Show panels"]="Hiện bảng", ["Clear session"]="Xóa phiên", ["Import folder…"]="Nhập thư mục…", ["Cancel import"]="Hủy nhập",

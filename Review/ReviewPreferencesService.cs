@@ -4,7 +4,7 @@ using System.Text.Json;
 namespace PhotoFileFilter.Review;
 
 public sealed record ReviewPreferences(
-    int PreviewMaxEdge = 1800,
+    int PreviewMaxEdge = 2400,
     int ZoomStepPercent = 25,
     int OverlayDurationMs = 950,
     int OverlayPosition = 0,
@@ -17,7 +17,8 @@ public sealed record ReviewPreferences(
     string ResetZoomShortcut = "` + Ctrl+0",
     string GridShortcut = "G",
     string LoupeShortcut = "E",
-    int ClickZoomPercent = 200);
+    int ClickZoomPercent = 200,
+    bool FullResolutionOnZoom = true);
 
 public sealed class ReviewPreferencesService(string? filePath = null)
 {

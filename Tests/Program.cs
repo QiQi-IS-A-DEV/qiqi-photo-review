@@ -185,6 +185,64 @@ internal static class Program
         var rawResult = await Task.Run(() => previewService.Load(rawPreviewPath, default));
         Check(rawResult.Image != null && rawResult.Description.Contains("matching JPG preview"), "Unsupported RAW uses an explicitly labelled matching JPG preview");
         Check(previewService.Load(Path.Combine(_root, "missing.CR3"), default).Image == null, "Missing/unsupported preview reports unavailable without crashing");
+        // A lossless, high-frequency fixture exposes accidental thumbnail upscaling and decode caps.
+        const int detailWidth = 6000, detailHeight = 900;
+        var detailPixels = new byte[detailWidth * detailHeight * 3];
+        for (var i = 0; i < detailPixels.Length; i++) detailPixels[i] = (byte)(i % 251);
+        var detailSource = BitmapSource.Create(detailWidth, detailHeight, 96, 96, PixelFormats.Bgr24, null, detailPixels, detailWidth * 3);
+        var detailPath = Path.Combine(_root, "detail", "detail.png"); Directory.CreateDirectory(Path.GetDirectoryName(detailPath)!);
+        var detailEncoder = new PngBitmapEncoder(); detailEncoder.Frames.Add(BitmapFrame.Create(detailSource));
+        using (var stream = File.Create(detailPath)) detailEncoder.Save(stream);
+        foreach (var edge in new[] { 3600, 4800 })
+        {
+            var highQuality = await Task.Run(() => previewService.Load(detailPath, default, edge));
+            Check(highQuality.Image?.PixelWidth == edge && highQuality.Image.PixelHeight == edge * detailHeight / detailWidth, $"Preview decodes actual {edge}px detail beyond the old 2400px limit");
+        }
+        var originalDetail = await Task.Run(() => previewService.Load(detailPath, default, 0));
+        Check(originalDetail.Image is { PixelWidth: detailWidth, PixelHeight: detailHeight, IsFrozen: true }, "Original preview retains the complete source resolution");
+        var actualPixels = new byte[detailPixels.Length]; new FormatConvertedBitmap(originalDetail.Image!, PixelFormats.Bgr24, null, 0).CopyPixels(actualPixels, detailWidth * 3, 0);
+        Check(actualPixels.SequenceEqual(detailPixels), "Original preview preserves every pixel of a lossless source without resampling");
+        Check(previewService.Load(previewPath, default, 4800).Image?.PixelWidth == 32, "High preview quality does not enlarge a low-resolution source during decoding");
+        Check(previewService.Load(portraitPath, default, 0).Image is { PixelWidth: 24, PixelHeight: 32 }, "Original quality preserves EXIF orientation");
+        var detailHistogram = new HistogramService().Calculate(originalDetail.Image!, default);
+        Check(detailHistogram.Chart.IsFrozen && detailHistogram.AverageLuminance is > 0 and < 1, "Full-resolution histogram works with bounded row buffers");
+        using (var detailVm = new ReviewViewModel(new FakeDialogs(), new ReviewCatalogService(Path.Combine(_root, "detail-catalog.json")), new ReviewSessionService(Path.Combine(_root, "detail-session.json")), new ReviewPreferencesService(Path.Combine(_root, "detail-preferences.json"))))
+        {
+            detailVm.PreviewMaxEdge = 1800;
+            await detailVm.ImportAsync(Path.GetDirectoryName(detailPath)!);
+            await WaitUntil(() => !detailVm.IsPreviewLoading, "initial detail preview");
+            Check(detailVm.PreviewImage?.PixelWidth == 1800, "Review initially respects its selected preview quality");
+            detailVm.PreviewMaxEdge = 4800;
+            await WaitUntil(() => !detailVm.IsPreviewLoading, "quality change");
+            Check(detailVm.PreviewImage?.PixelWidth == 4800 && detailVm.CurrentPhoto?.Thumbnail?.PixelWidth <= 240, "Changing quality immediately reloads the current photo without retaining it as a catalog thumbnail");
+            detailVm.ViewMode = 1; detailVm.ZoomTo(2, 100, 50);
+            await WaitUntil(() => !detailVm.IsPreviewLoading, "original zoom preview");
+            Check(detailVm.PreviewImage?.PixelWidth == detailWidth && detailVm.PanX == -100 && detailVm.PanY == -50, "Loupe zoom loads full-resolution detail and preserves the cursor anchor");
+            detailVm.ResetZoom();
+            await WaitUntil(() => !detailVm.IsPreviewLoading, "return to Fit");
+            Check(detailVm.PreviewImage?.PixelWidth == 4800 && detailVm.ZoomLabel == "Fit", "Fit restores the chosen preview quality and is labelled accurately");
+            detailVm.FullResolutionOnZoom = false; detailVm.ZoomTo(2, 0, 0);
+            await WaitUntil(() => !detailVm.IsPreviewLoading, "fixed quality zoom");
+            Check(detailVm.PreviewImage?.PixelWidth == 4800, "Full-resolution loading on zoom can be disabled");
+            detailVm.PreviewMaxEdge = 0;
+            await WaitUntil(() => !detailVm.IsPreviewLoading, "explicit Original quality");
+            Check(detailVm.PreviewImage?.PixelWidth == detailWidth, "Explicit Original quality works independently of automatic zoom loading");
+            detailVm.FilterIndex = 7;
+            await detailVm.ImportAsync(Path.GetDirectoryName(detailPath)!);
+            Check(detailVm.FilterIndex == 0 && detailVm.FilteredPhotos.Count == 1 && detailVm.CurrentPhoto != null, "A new folder import clears a stale color filter so imported photos are visible");
+            detailVm.FilterIndex = 4;
+            await detailVm.ImportPathsAsync([detailPath]);
+            Check(detailVm.FilterIndex == 0 && detailVm.CurrentPhoto != null, "Dropped files also clear a stale rating filter");
+            detailVm.PreviewMaxEdge = 1200; detailVm.PreviewMaxEdge = 0;
+            await detailVm.ImportPathsAsync([previewPath]);
+            await WaitUntil(() => !detailVm.IsPreviewLoading, "navigation during decoding");
+            Check(detailVm.CurrentPhoto?.Name == "IMG_700.JPG" && detailVm.PreviewImage?.PixelWidth == 32, "A completed older decode cannot replace the current photo during rapid quality changes and navigation");
+        }
+        var savedDetailPreferences = new ReviewPreferencesService(Path.Combine(_root, "detail-preferences.json")).Load();
+        Check(savedDetailPreferences.PreviewMaxEdge == 0 && !savedDetailPreferences.FullResolutionOnZoom, "Original quality and automatic zoom preference survive saving");
+        var legacyPreferencesPath = Write("legacy-preview-preferences.json", "{\"PreviewMaxEdge\":1800}");
+        using (var legacyVm = new ReviewViewModel(new FakeDialogs(), new ReviewCatalogService(Path.Combine(_root, "legacy-catalog.json")), new ReviewSessionService(Path.Combine(_root, "legacy-session.json")), new ReviewPreferencesService(legacyPreferencesPath)))
+            Check(legacyVm.PreviewMaxEdge == 1800 && legacyVm.FullResolutionOnZoom, "Existing quality preferences are kept while enabling original resolution on zoom");
         var reviewRoot = Path.Combine(_root, "review"); Directory.CreateDirectory(reviewRoot);
         File.Copy(previewPath, Path.Combine(reviewRoot, "IMG_10.JPG"));
         File.Copy(previewPath, Path.Combine(reviewRoot, "IMG_2.JPG"));
@@ -367,6 +425,11 @@ internal static class Program
         typeof(ReviewWindow).GetMethod("HideHelpPopup", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.Invoke(reviewWindow, null);
         typeof(ReviewWindow).GetMethod("OnShowSettings", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.Invoke(reviewWindow, [reviewWindow, new RoutedEventArgs()]);
         Check(((FrameworkElement)reviewWindow.FindName("SettingsOverlay")).Visibility == Visibility.Visible, "Review settings open as an in-window popup");
+        var qualityCombo = (System.Windows.Controls.ComboBox)reviewWindow.FindName("PreviewQualityCombo");
+        var previousQuality = reviewVm.PreviewMaxEdge;
+        qualityCombo.SelectedValue = 0;
+        Check(reviewVm.PreviewMaxEdge == 0 && qualityCombo.SelectedItem is PreviewQualityOption { MaxEdge: 0 }, "The quality selector applies Original to the review view model");
+        qualityCombo.SelectedValue = previousQuality;
         await Render(reviewWindow, Path.Combine(screenshot, "review-settings.png"));
         typeof(ReviewWindow).GetMethod("HideSettingsPopup", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.Invoke(reviewWindow, null);
         reviewVm.ViewMode = 1;
@@ -442,6 +505,12 @@ internal static class Program
         using var stream = File.Create(path); encoder.Save(stream);
         window.Content = content;
         Check(stream.Length > 10000, "WPF layout rendered: " + Path.GetFileName(path));
+    }
+    private static async Task WaitUntil(Func<bool> ready, string operation)
+    {
+        var deadline = DateTime.UtcNow.AddSeconds(15);
+        while (!ready() && DateTime.UtcNow < deadline) await Task.Delay(20);
+        if (!ready()) throw new Exception("Timed out waiting for " + operation);
     }
     private sealed class InlineProgress(Action<OperationProgress> action) : IProgress<OperationProgress> { public void Report(OperationProgress value) => action(value); }
     private sealed class FakeDialogs : IDialogService

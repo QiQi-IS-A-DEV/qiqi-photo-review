@@ -14,8 +14,17 @@ public sealed class PreviewService
         token.ThrowIfCancellationRequested();
         try
         {
-            var direct = Decode(path, !Raster.Contains(Path.GetExtension(path)), token, maxEdge);
-            if (direct != null) return new(direct, (LanguageService.IsVietnamese ? "Preview: " : "Preview: ") + Path.GetFileName(path));
+            var raw = !Raster.Contains(Path.GetExtension(path));
+            // Grid thumbnails can use the embedded image; Loupe must try the full decoder.
+            var embeddedOnly = raw && maxEdge is > 0 and <= 320;
+            var direct = Decode(path, embeddedOnly, token, maxEdge);
+            if (direct == null && embeddedOnly)
+            {
+                direct = Decode(path, false, token, maxEdge);
+                embeddedOnly = false;
+            }
+            if (direct != null) return new(direct, Describe(direct, path, embeddedOnly
+                ? LanguageService.Text("Embedded RAW preview") : raw ? LanguageService.Text("RAW via Windows codec") : "Preview"));
         }
         catch (Exception e) when (IsImageError(e)) { }
         if (!Raster.Contains(Path.GetExtension(path)))
@@ -31,14 +40,33 @@ public sealed class PreviewService
                     try
                     {
                         var image = Decode(candidate, false, token, maxEdge);
-                        if (image != null) return new(image, LanguageService.IsVietnamese ? $"Dùng preview JPG cùng tên: {Path.GetFileName(candidate)} — đây không phải RAW đã giải mã." : $"Using matching JPG preview: {Path.GetFileName(candidate)} — this is not a decoded RAW image.");
+                        if (image != null) return new(image, Describe(image, candidate, LanguageService.IsVietnamese ? "Dùng preview JPG cùng tên" : "Using matching JPG preview") +
+                            (LanguageService.IsVietnamese ? " · Không phải RAW đã giải mã." : " · Not a decoded RAW image."));
                     }
                     catch (Exception e) when (IsImageError(e)) { }
                 }
             }
             catch (Exception e) when (IsImageError(e)) { }
+            try
+            {
+                var embedded = Decode(path, true, token, maxEdge);
+                if (embedded != null) return new(embedded, Describe(embedded, path, LanguageService.Text("Embedded RAW preview")) +
+                    (LanguageService.IsVietnamese ? " · Chi tiết phụ thuộc preview nhúng; hãy dùng JPG cùng tên hoặc codec RAW phù hợp để soi nét." : " · Detail is limited by the embedded preview; use a matching JPG or a compatible RAW codec for close inspection."));
+            }
+            catch (Exception e) when (IsImageError(e)) { }
         }
         return new(null, LanguageService.IsVietnamese ? "Không thể xem preview file này. Windows có thể chưa có codec phù hợp, hoặc file bị hỏng/không còn tồn tại. Bạn vẫn có thể mở vị trí file trong File Explorer." : "This file could not be previewed. Its format may not be supported by the installed Windows codec, or the file may be damaged or missing. You can still show it in File Explorer.");
+    }
+
+    private static string Describe(BitmapSource image, string path, string source)
+        => $"{source} · {image.PixelWidth:N0} × {image.PixelHeight:N0} px · {Path.GetFileName(path)}";
+
+    // Return an independent, small bitmap so a catalog thumbnail cannot retain a full-resolution image.
+    public static BitmapSource CreateThumbnail(BitmapSource source, int maxEdge = 240)
+    {
+        var scale = Math.Min(1d, Math.Max(1, maxEdge) / (double)Math.Max(source.PixelWidth, source.PixelHeight));
+        BitmapSource resized = scale < 1 ? new TransformedBitmap(source, new ScaleTransform(scale, scale)) : source;
+        var thumbnail = new WriteableBitmap(resized); thumbnail.Freeze(); return thumbnail;
     }
 
     private static BitmapSource? Decode(string path, bool thumbnailOnly, CancellationToken token, int maxEdge)
@@ -62,19 +90,30 @@ public sealed class PreviewService
             stream.Position = 0;
             var bitmap = new BitmapImage();
             bitmap.BeginInit(); bitmap.CacheOption = BitmapCacheOption.OnLoad;
-            maxEdge = Math.Clamp(maxEdge, 96, 2400);
-            if (frame.PixelWidth >= frame.PixelHeight) bitmap.DecodePixelWidth = Math.Min(maxEdge, frame.PixelWidth);
-            else bitmap.DecodePixelHeight = Math.Min(maxEdge, frame.PixelHeight);
+            // Zero means original pixel dimensions. Never enlarge a source during decoding.
+            if (maxEdge != 0)
+            {
+                maxEdge = Math.Clamp(maxEdge, 96, 8192);
+                if (frame.PixelWidth >= frame.PixelHeight) bitmap.DecodePixelWidth = Math.Min(maxEdge, frame.PixelWidth);
+                else bitmap.DecodePixelHeight = Math.Min(maxEdge, frame.PixelHeight);
+            }
             bitmap.StreamSource = stream; bitmap.EndInit(); image = bitmap;
         }
         if (image == null)
         {
-            try { image = frame.Thumbnail; } catch (Exception e) when (IsImageError(e)) { }
+            try { image = decoder.Preview; } catch (Exception e) when (IsImageError(e)) { }
+            try
+            {
+                var thumbnail = frame.Thumbnail;
+                if (thumbnail != null && (image == null || (long)thumbnail.PixelWidth * thumbnail.PixelHeight > (long)image.PixelWidth * image.PixelHeight)) image = thumbnail;
+            }
+            catch (Exception e) when (IsImageError(e)) { }
         }
         if (image == null) return null;
         token.ThrowIfCancellationRequested();
-        // Materialize pixels before closing the decoder's stream. No source is held open by the UI.
-        var copy = new WriteableBitmap(image);
+        // Embedded previews depend on the open decoder stream and must be detached.
+        // BitmapImage with OnLoad already owns its pixels; avoid a second full-size allocation.
+        var copy = thumbnailOnly ? CreateThumbnail(image, maxEdge == 0 ? Math.Max(image.PixelWidth, image.PixelHeight) : maxEdge) : image;
         copy.Freeze();
         var matrix = orientation switch
         {

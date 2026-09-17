@@ -18,16 +18,18 @@ public sealed class HistogramService
     {
         BitmapSource bitmap = source.Format == PixelFormats.Bgra32 ? source : new FormatConvertedBitmap(source, PixelFormats.Bgra32, null, 0);
         var width = bitmap.PixelWidth; var height = bitmap.PixelHeight; var stride = width * 4;
-        var pixels = new byte[stride * height]; bitmap.CopyPixels(pixels, stride, 0);
+        // Full-resolution previews can be large. Read only sampled rows instead of duplicating the image.
+        var pixels = new byte[stride];
         var red = new long[256]; var green = new long[256]; var blue = new long[256];
         var step = Math.Max(1, (int)Math.Sqrt((width * (double)height) / 250000d));
         long count = 0, highlights = 0, shadows = 0; double luminanceTotal = 0;
         for (var y = 0; y < height; y += step)
         {
             token.ThrowIfCancellationRequested();
+            bitmap.CopyPixels(new System.Windows.Int32Rect(0, y, width, 1), pixels, stride, 0);
             for (var x = 0; x < width; x += step)
             {
-                var index = y * stride + x * 4; var b = pixels[index]; var g = pixels[index + 1]; var r = pixels[index + 2];
+                var index = x * 4; var b = pixels[index]; var g = pixels[index + 1]; var r = pixels[index + 2];
                 blue[b]++; green[g]++; red[r]++; count++;
                 var luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
                 luminanceTotal += luminance;

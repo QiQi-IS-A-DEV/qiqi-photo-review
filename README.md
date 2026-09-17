@@ -47,6 +47,9 @@ Lần mở đầu tiên, ứng dụng cho phép chọn **Tiếng Việt** hoặc
 - Histogram RGB giúp kiểm tra nhanh vùng sáng, vùng tối và độ sáng trung bình.
 - Có chế độ ẩn hai bảng bên để dành thêm không gian xem ảnh.
 - Cho phép tùy chỉnh độ phân giải preview, bước zoom, vị trí thông báo và một số phím tắt.
+- Trong **Cài đặt → Chất lượng preview**, chọn 1.200, 1.800, 2.400, 3.600, 4.800 px hoặc **Original · Độ phân giải gốc**. Thay đổi được áp dụng ngay trên ảnh đang xem.
+- Tùy chọn **Tải độ phân giải gốc khi zoom** tự nạp ảnh đầy đủ khi zoom trong Loupe và về mức đã chọn khi trở lại Fit. App chỉ giữ preview lớn cho ảnh hiện tại, còn thumbnail vẫn nhỏ.
+- Dòng thông tin dưới ảnh cho biết kích thước pixel và nguồn preview thực tế; Original dùng nhiều RAM hơn. Mức zoom được tính theo Fit, không phải tỷ lệ pixel 1:1.
 
 ### Lọc RAW theo danh sách TXT
 
@@ -75,7 +78,7 @@ Lần mở đầu tiên, ứng dụng cho phép chọn **Tiếng Việt** hoặc
 | `Space` | Chuyển giữa Grid và Loupe |
 | `Ctrl + [` / `Ctrl + ]` | Xoay trái / phải 90° |
 | `Ctrl + +` / `Ctrl + -` | Phóng to / thu nhỏ |
-| `` ` `` hoặc `Ctrl + 0` | Đưa zoom về 100% |
+| `` ` `` hoặc `Ctrl + 0` | Đưa ảnh về Fit toàn khung |
 | `Ctrl + Z` | Hoàn tác thao tác review gần nhất |
 | `Tab` | Ẩn / hiện hai bảng bên |
 | `F1` | Mở hướng dẫn sử dụng |
@@ -93,7 +96,7 @@ Các phím tắt chính có thể được thay đổi trong **Settings** của 
 
 `ARW`, `CR2`, `CR3`, `NEF`, `RAF`, `ORF`, `RW2`, `DNG`
 
-Việc tìm và sao chép file RAW không cần giải mã nội dung ảnh. Khả năng **hiển thị preview RAW** phụ thuộc codec ảnh đang được cài trong Windows. Nếu RAW không đọc được và có JPG/JPEG cùng tên trong cùng thư mục, ứng dụng sẽ dùng ảnh JPG đó làm preview và hiển thị thông báo rõ ràng.
+Việc tìm và sao chép file RAW không cần giải mã nội dung ảnh. Khi xem ảnh, app thử giải mã RAW đầy đủ qua codec Windows. Nếu không đọc được, app thử JPG/JPEG cùng tên trong cùng thư mục, rồi preview nhúng trong RAW. Dòng thông tin dưới ảnh ghi rõ nguồn và kích thước preview; ảnh nhúng nhỏ không thể cung cấp chi tiết tương đương ảnh gốc chỉ bằng cách zoom.
 
 ## Yêu cầu hệ thống
 
@@ -130,7 +133,7 @@ dotnet build PhotoFileFilter.sln -c Release
 dotnet run --project Tests/PhotoFileFilter.Tests.csproj -c Release
 ```
 
-Bộ kiểm thử hiện gồm **144 kiểm tra**, bao phủ parser TXT, quét thư mục, bảo vệ ảnh gốc, chính sách trùng tên, session Review và TXT Filter, chuyển ngôn ngữ, rating, nhãn màu, phạm vi export, xoay, zoom, histogram và bố cục WPF.
+Bộ kiểm thử hiện gồm **163 kiểm tra**, bao phủ parser TXT, quét thư mục, bảo vệ ảnh gốc, chính sách trùng tên, session Review và TXT Filter, chuyển ngôn ngữ, rating, nhãn màu, phạm vi export, xoay, zoom, độ phân giải preview, histogram và bố cục WPF.
 
 ## Đóng gói bản portable
 
@@ -190,6 +193,14 @@ publish.ps1            Script đóng gói portable cho Windows x64
 ```
 
 ## Phiên bản hiện tại
+
+**1.21.0**
+
+- Sửa import mới bị ẩn ảnh do giữ bộ lọc màu hoặc Rating từ thư mục trước; mở lại phiên vẫn khôi phục bộ lọc đã lưu.
+- Thêm preview 3.600 px, 4.800 px và Original, áp dụng ngay mà không cần import lại.
+- Thêm tùy chọn tự tải độ phân giải gốc khi zoom trong Loupe, mặc định bật.
+- Đọc ảnh RAW đầy đủ qua codec Windows thay vì chỉ lấy thumbnail nhúng; ghi rõ nguồn preview và kích thước thực tế.
+- Giới hạn thumbnail ở kích thước nhỏ và tính histogram theo từng hàng để giảm bộ nhớ khi soi ảnh lớn.
 
 **1.20.0**
 
