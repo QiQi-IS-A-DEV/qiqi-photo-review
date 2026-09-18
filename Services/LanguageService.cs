@@ -48,7 +48,7 @@ public static class LanguageService
         ["Show in File Explorer"]="Hiện trong File Explorer", ["Copy full path"]="Sao chép đường dẫn đầy đủ", ["Include all files"]="Chọn tất cả file", ["COPY"]="CHÉP",
         ["NAME / FOLDER"]="TÊN / THƯ MỤC", ["TYPE"]="LOẠI", ["SIZE"]="DUNG LƯỢNG", ["Bring every selected photo into one place."]="Tập hợp các ảnh đã chọn vào cùng một nơi.",
         ["Add a filename list and scan your source folder to begin."]="Thêm danh sách tên ảnh và quét thư mục nguồn để bắt đầu.", ["Destination…"]="Nơi lưu…", ["Open Folder ↗"]="Mở thư mục ↗",
-        ["Play sound when finished"]="Phát âm thanh khi xong", ["Cancel"]="Hủy", ["WORKFLOW"]="QUY TRÌNH", ["MATCHING NOTES"]="LƯU Ý ĐỐI CHIẾU", ["SHORTCUTS"]="PHÍM TẮT",
+        ["Play sound when finished"]="Phát âm thanh khi xong", ["Cancel"]="Hủy", ["WORKFLOW"]="QUY TRÌNH", ["MATCHING NOTES"]="LƯU Ý ĐỐI CHIẾU", ["SHORTCUTS"]="PHÍM TẮT", ["KEY"]="PHÍM", ["ACTION"]="CHỨC NĂNG",
         ["QiQi Studio TXT Filter Guide"]="Hướng dẫn lọc ảnh TXT - QiQi Studio", ["Match a filename list with JPG or RAW originals, then copy the files into one folder."]="Đối chiếu danh sách tên với ảnh JPG hoặc RAW gốc, sau đó sao chép vào một thư mục.",
         ["1. Add the filename list. "]="1. Thêm danh sách tên ảnh. ", ["Choose a TXT file or drop it onto Filename List. The list can contain names such as IMG_1001 or IMG_1002.JPG."]="Chọn file TXT hoặc kéo vào ô Danh sách tên ảnh. Danh sách có thể chứa IMG_1001 hoặc IMG_1002.JPG.",
         ["2. Set the matching rules. "]="2. Thiết lập quy tắc đối chiếu. ", ["Choose how names are separated. Keep Ignore file extensions enabled when a JPG list should find RAW files with the same base name."]="Chọn ký tự phân cách. Bật bỏ qua phần mở rộng khi muốn dùng danh sách JPG để tìm RAW cùng tên.",
@@ -105,7 +105,7 @@ public static class LanguageService
         , ["Reset to Fit · mouse wheel zooms toward the pointer"]="Về Fit · con lăn zoom theo vị trí con trỏ", ["Show or hide both side panels"]="Ẩn hoặc hiện hai bảng bên"
         , ["Open this guide · press Esc to close"]="Mở hướng dẫn · nhấn Esc để đóng"
         , ["• Matching is not case-sensitive.\n• With extensions ignored, IMG_1001.JPG can match IMG_1001.CR3 or IMG_1001.ARW.\n• The TXT file should contain filenames, not full folder paths.\n• QiQi Studio copies selected files and never modifies the originals."]="• Không phân biệt chữ hoa và chữ thường.\n• Khi bỏ qua phần mở rộng, IMG_1001.JPG có thể khớp IMG_1001.CR3 hoặc IMG_1001.ARW.\n• TXT nên chứa tên file, không phải đường dẫn đầy đủ.\n• QiQi Studio chỉ sao chép file đã chọn và không sửa ảnh gốc."
-        , ["Switch between Review and TXT Filter\nChoose a TXT list\nScan the source folder\nOpen Quick Preview for the selected result\nCancel an operation / close this guide"]="Chuyển giữa Review và Lọc TXT\nChọn danh sách TXT\nQuét thư mục nguồn\nMở Xem nhanh cho kết quả đang chọn\nHủy thao tác / đóng hướng dẫn"
+        , ["Switch between Review and TXT Filter"]="Chuyển giữa Review và Lọc TXT", ["Choose a TXT list"]="Chọn danh sách TXT", ["Scan the source folder"]="Quét thư mục nguồn", ["Open Quick Preview for the selected result"]="Mở Xem nhanh cho kết quả đang chọn", ["Cancel an operation / close this guide"]="Hủy thao tác / đóng hướng dẫn"
     };
 
     public static void Initialize() { try { if (File.Exists(FilePath)) CurrentLanguage = Normalize(JsonSerializer.Deserialize<SavedLanguage>(File.ReadAllText(FilePath))?.Language); } catch { CurrentLanguage = English; } }

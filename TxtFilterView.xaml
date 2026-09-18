@@ -4,6 +4,10 @@
         xmlns:services="clr-namespace:PhotoFileFilter.Services"
         Background="{DynamicResource CF3F5F3}" Foreground="{DynamicResource C20343F}"
         FontFamily="Segoe UI" FontSize="13" UseLayoutRounding="True" PreviewKeyDown="OnMainKeyDown">
+    <UserControl.Resources>
+        <Style x:Key="GuideKeycap" TargetType="Border"><Setter Property="Background" Value="{DynamicResource CF2F5F7}"/><Setter Property="BorderBrush" Value="{DynamicResource Line}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="CornerRadius" Value="4"/><Setter Property="Padding" Value="6,2"/><Setter Property="HorizontalAlignment" Value="Left"/></Style>
+        <Style x:Key="GuideTableHeader" TargetType="TextBlock"><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="HorizontalAlignment" Value="Center"/></Style>
+    </UserControl.Resources>
     <UserControl.InputBindings>
         <KeyBinding Key="F5" Command="{Binding ScanCommand}"/>
         <KeyBinding Key="O" Modifiers="Control" Command="{Binding BrowseTxtCommand}"/>
@@ -244,11 +248,16 @@
                             <TextBlock Text="• Matching is not case-sensitive.&#x0a;• With extensions ignored, IMG_1001.JPG can match IMG_1001.CR3 or IMG_1001.ARW.&#x0a;• The TXT file should contain filenames, not full folder paths.&#x0a;• QiQi Studio copies selected files and never modifies the originals." TextWrapping="Wrap" LineHeight="21"/>
 
                             <TextBlock Text="SHORTCUTS" Style="{StaticResource Eyebrow}" Foreground="{DynamicResource C3F8A73}" Margin="0,16,0,8"/>
-                            <Grid>
-                                <Grid.ColumnDefinitions><ColumnDefinition Width="110"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                <TextBlock FontFamily="Consolas" Text="Ctrl+1 / Ctrl+2&#x0a;Ctrl+O&#x0a;F5&#x0a;Space&#x0a;Esc / F1" LineHeight="21"/>
-                                <TextBlock Grid.Column="1" Text="Switch between Review and TXT Filter&#x0a;Choose a TXT list&#x0a;Scan the source folder&#x0a;Open Quick Preview for the selected result&#x0a;Cancel an operation / close this guide" LineHeight="21"/>
-                            </Grid>
+                            <Border BorderBrush="{DynamicResource Line}" BorderThickness="1">
+                                <Grid x:Name="FilterGuideShortcuts"><Grid.ColumnDefinitions><ColumnDefinition Width="165"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition Height="34"/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
+                                    <Border Background="{DynamicResource CF2F5F7}" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,1,1" Padding="10,7"><TextBlock Text="KEY" Style="{StaticResource GuideTableHeader}"/></Border><Border Grid.Column="1" Background="{DynamicResource CF2F5F7}" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1" Padding="10,7"><TextBlock Text="ACTION" Style="{StaticResource GuideTableHeader}"/></Border>
+                                    <Border Grid.Row="1" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,1,1" Padding="10,6"><Border Style="{StaticResource GuideKeycap}"><TextBlock Text="Ctrl+1 / Ctrl+2" FontFamily="Consolas"/></Border></Border><Border Grid.Row="1" Grid.Column="1" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1" Padding="12,7"><TextBlock Text="Switch between Review and TXT Filter"/></Border>
+                                    <Border Grid.Row="2" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,1,1" Padding="10,6"><Border Style="{StaticResource GuideKeycap}"><TextBlock Text="Ctrl+O" FontFamily="Consolas"/></Border></Border><Border Grid.Row="2" Grid.Column="1" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1" Padding="12,7"><TextBlock Text="Choose a TXT list"/></Border>
+                                    <Border Grid.Row="3" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,1,1" Padding="10,6"><Border Style="{StaticResource GuideKeycap}"><TextBlock Text="F5" FontFamily="Consolas"/></Border></Border><Border Grid.Row="3" Grid.Column="1" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1" Padding="12,7"><TextBlock Text="Scan the source folder"/></Border>
+                                    <Border Grid.Row="4" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,1,1" Padding="10,6"><Border Style="{StaticResource GuideKeycap}"><TextBlock Text="Space" FontFamily="Consolas"/></Border></Border><Border Grid.Row="4" Grid.Column="1" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1" Padding="12,7"><TextBlock Text="Open Quick Preview for the selected result"/></Border>
+                                    <Border Grid.Row="5" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,1,0" Padding="10,6"><Border Style="{StaticResource GuideKeycap}"><TextBlock Text="Esc / F1" FontFamily="Consolas"/></Border></Border><Border Grid.Row="5" Grid.Column="1" Padding="12,7"><TextBlock Text="Cancel an operation / close this guide"/></Border>
+                                </Grid>
+                            </Border>
                         </StackPanel>
                     </ScrollViewer>
                     <Button Grid.Row="2" Content="Close Guide" Click="OnCloseFilterHelp" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Right" Margin="0,18,0,0" Padding="18,9"/>

@@ -217,6 +217,11 @@ publish.ps1            Script đóng gói portable cho Windows x64
 
 ## Phiên bản hiện tại
 
+**1.25.1 — bảng hướng dẫn phím tắt dễ đọc**
+
+- Phần phím tắt trong hướng dẫn Review và TXT Filter được trình bày thành bảng **Phím | Chức năng**.
+- Các tổ hợp phím hiển thị dạng keycap, có đường phân cách từng hàng và hỗ trợ đầy đủ tiếng Anh/Việt.
+
 **1.25.0 — bản ổn định hợp nhất vào main**
 
 - Cập nhật hướng dẫn Review và TXT Filter theo đúng thao tác hiện tại, bằng cả tiếng Anh và tiếng Việt.
