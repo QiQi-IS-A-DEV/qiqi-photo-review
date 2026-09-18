@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
-    <Version>1.21.1</Version>
+    <Version>1.22.0</Version>
     <Product>QiQi Studio — Photo File Filter</Product>
     <Company>QiQi Studio</Company>
     <ApplicationIcon>Assets\qiqistudio.ico</ApplicationIcon>

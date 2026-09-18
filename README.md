@@ -48,7 +48,7 @@ Lần mở đầu tiên, ứng dụng cho phép chọn **Tiếng Việt** hoặc
 - Có chế độ ẩn hai bảng bên để dành thêm không gian xem ảnh.
 - Cho phép tùy chỉnh độ phân giải preview, bước zoom, vị trí thông báo và một số phím tắt.
 - Trong **Cài đặt → Chất lượng preview**, chọn 1.200, 1.800, 2.400, 3.600, 4.800 px hoặc **Original · Độ phân giải gốc**. Thay đổi được áp dụng ngay trên ảnh đang xem.
-- Tùy chọn **Tải độ phân giải gốc khi zoom** tự nạp ảnh đầy đủ khi zoom trong Loupe và về mức đã chọn khi trở lại Fit. App chỉ giữ preview lớn cho ảnh hiện tại, còn thumbnail vẫn nhỏ.
+- Tùy chọn **Tải độ phân giải gốc khi zoom** tự nạp ảnh đầy đủ khi zoom trong Loupe và về mức đã chọn khi trở lại Fit. App giữ tối đa 5 preview gần nhất trong ngân sách cache 192 MiB ước tính; ảnh vượt ngân sách không được giữ trong cache, còn thumbnail vẫn nhỏ.
 - Dòng thông tin dưới ảnh cho biết kích thước pixel và nguồn preview thực tế; Original dùng nhiều RAM hơn. Mức zoom được tính theo Fit, không phải tỷ lệ pixel 1:1.
 
 ### Lọc RAW theo danh sách TXT
@@ -193,6 +193,14 @@ publish.ps1            Script đóng gói portable cho Windows x64
 ```
 
 ## Phiên bản hiện tại
+
+**1.22.0 — bản kiểm duyệt trên nhánh codex/phase-3-copy-feedback**
+
+- Tách TXT Filter thành UserControl, sở hữu phím tắt riêng khi nhúng trong Review.
+- Cache preview LRU tối đa 5 ảnh / 192 MiB ước tính và chỉ mục JPG đồng hành cho RAW.
+- Copy có tiến độ theo byte, tốc độ MiB/s và ETA; thanh tiến độ dễ quan sát hơn.
+- Bỏ nút Close cạnh Settings; thêm phím 1/V/Enter và 2/E ở màn hình chọn ngôn ngữ.
+- Chưa gộp main; xem docs/IMPROVEMENT-PLAN.md để kiểm duyệt các phase.
 
 **1.21.1**
 
