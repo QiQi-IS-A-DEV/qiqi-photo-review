@@ -9,7 +9,45 @@ public record PreviewResult(BitmapSource? Image, string Description);
 public sealed class PreviewService
 {
     private static readonly HashSet<string> Raster = new(StringComparer.OrdinalIgnoreCase) { ".jpg", ".jpeg", ".png", ".tif", ".tiff", ".heic" };
+    private readonly PreviewCache _cache;
+    private readonly JpegCompanionIndex _companions = new();
+
+    public PreviewService(int cacheCapacity = 5, long cacheByteLimit = 192L * 1024 * 1024)
+        => _cache = new(cacheCapacity, Math.Max(0, cacheByteLimit));
+
     public PreviewResult Load(string path, CancellationToken token, int maxEdge = 1400)
+    {
+        token.ThrowIfCancellationRequested();
+        string[] companions = [];
+        if (!Raster.Contains(Path.GetExtension(path)))
+        {
+            try { companions = _companions.Find(path, token); }
+            catch (Exception e) when (IsImageError(e)) { }
+        }
+        // Thumbnail loading must not evict the recent Loupe images.
+        var key = maxEdge is > 0 and <= 320 ? null : CacheKey(path, companions, maxEdge);
+        if (key != null && _cache.Get(key) is { } cached) return cached;
+        var result = LoadUncached(path, companions, token, maxEdge);
+        token.ThrowIfCancellationRequested();
+        if (key != null && key == CacheKey(path, companions, maxEdge)) _cache.Add(key, result);
+        return result;
+    }
+
+    private static string? CacheKey(string path, string[] companions, int maxEdge)
+    {
+        try
+        {
+            static string Stamp(string file)
+            {
+                var info = new FileInfo(file);
+                return $"{info.FullName.ToUpperInvariant()}|{(info.Exists ? info.Length : -1)}|{info.LastWriteTimeUtc.Ticks}";
+            }
+            return $"{maxEdge}|{LanguageService.CurrentLanguage}|{Stamp(path)}\n{string.Join("\n", companions.Select(Stamp))}";
+        }
+        catch (Exception e) when (IsImageError(e)) { return null; }
+    }
+
+    private PreviewResult LoadUncached(string path, string[] companions, CancellationToken token, int maxEdge)
     {
         token.ThrowIfCancellationRequested();
         try
@@ -31,12 +69,9 @@ public sealed class PreviewService
         {
             try
             {
-                var stem = Path.GetFileNameWithoutExtension(path);
-                foreach (var candidate in Directory.EnumerateFiles(Path.GetDirectoryName(path)!))
+                foreach (var candidate in companions)
                 {
                     token.ThrowIfCancellationRequested();
-                    if (!string.Equals(Path.GetFileNameWithoutExtension(candidate), stem, StringComparison.OrdinalIgnoreCase) ||
-                        !(Path.GetExtension(candidate).Equals(".jpg", StringComparison.OrdinalIgnoreCase) || Path.GetExtension(candidate).Equals(".jpeg", StringComparison.OrdinalIgnoreCase))) continue;
                     try
                     {
                         var image = Decode(candidate, false, token, maxEdge);

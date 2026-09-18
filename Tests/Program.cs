@@ -184,6 +184,29 @@ internal static class Program
         var rawPreviewPath = Write("preview/IMG_700.CR3", "not-a-raw-decoder-fixture");
         var rawResult = await Task.Run(() => previewService.Load(rawPreviewPath, default));
         Check(rawResult.Image != null && rawResult.Description.Contains("matching JPG preview"), "Unsupported RAW uses an explicitly labelled matching JPG preview");
+        Check(ReferenceEquals(jpegResult.Image, previewService.Load(previewPath, default).Image), "Repeated preview reuses the frozen cached bitmap");
+        var beforeChange = rawResult.Image;
+        File.SetLastWriteTimeUtc(previewPath, DateTime.UtcNow.AddMinutes(1));
+        Check(!ReferenceEquals(beforeChange, previewService.Load(rawPreviewPath, default).Image), "Changing a companion JPG invalidates its RAW preview cache");
+        var evicting = new PreviewService(cacheCapacity: 1);
+        var firstCached = evicting.Load(previewPath, default);
+        evicting.Load(portraitPath, default);
+        Check(!ReferenceEquals(firstCached.Image, evicting.Load(previewPath, default).Image), "LRU evicts previews when the entry limit is reached");
+        var tinyCache = new PreviewService(cacheByteLimit: 1);
+        Check(!ReferenceEquals(tinyCache.Load(previewPath, default).Image, tinyCache.Load(previewPath, default).Image), "Images above the byte budget are not retained");
+        Check(!ReferenceEquals(previewService.Load(previewPath, default, 96).Image, previewService.Load(previewPath, default, 1400).Image), "Thumbnail quality cannot poison the Loupe cache");
+        using (var cancelledPreview = new CancellationTokenSource())
+        {
+            cancelledPreview.Cancel();
+            try { previewService.Load(previewPath, cancelledPreview.Token); throw new Exception("Cache ignored cancellation"); }
+            catch (OperationCanceledException) { Check(true, "Cache hits respect cancellation"); }
+        }
+        var deletedCompanion = Write("companion-delete/photo.cr3", "unsupported");
+        var companionJpg = Path.ChangeExtension(deletedCompanion, ".jpg");
+        File.Copy(previewPath, companionJpg);
+        Check(previewService.Load(deletedCompanion, default).Image != null, "Companion index finds an existing JPG");
+        File.Delete(companionJpg);
+        Check(previewService.Load(deletedCompanion, default).Image == null, "Deleted JPG cannot be returned from a stale preview cache");
         Check(previewService.Load(Path.Combine(_root, "missing.CR3"), default).Image == null, "Missing/unsupported preview reports unavailable without crashing");
         // A lossless, high-frequency fixture exposes accidental thumbnail upscaling and decode caps.
         const int detailWidth = 6000, detailHeight = 900;
