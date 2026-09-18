@@ -112,3 +112,7 @@ Thay đổi tiếp tục trên nhánh nghiệp vụ có sẵn, không tạo nhá
 Tích hợp cập nhật Review từ phase-4-virtualized-grid vào phase-6-quick-preview. Giữ Space Grid/Loupe và không đưa Compare trở lại. Các việc lớn còn lại: semantic theme, localization không restart, navigator viewport, clipping overlay và pause/resume copy.
 
 Kiểm chứng bản tích hợp 1.24.0: 221 checks đạt ở Release; render Inspector, Bàn giao, Công cụ và filmstrip ở 1360×820, 1080×680; Space Grid/Loupe và Quick Preview vẫn đạt kiểm tra hồi quy.
+
+## Điều chỉnh 1.24.1
+
+Theo kiểm duyệt: gộp Review và Deliver thành một tab, giữ Tools riêng. Histogram lên đầu; tiếp theo Rating, Rotate/Zoom và Deliver. Cập nhật cùng phase-4-virtualized-grid và tích hợp phase-6-quick-preview, không tạo nhánh mới.

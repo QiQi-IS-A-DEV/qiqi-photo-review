@@ -556,8 +556,9 @@ internal static class Program
         reviewVm.FilmstripHeight = 124;
         reviewWindow.Width = 1080; reviewWindow.Height = 680;
         await Render(reviewWindow, Path.Combine(screenshot, "review-compact-inspector.png"));
-        inspectorTabs.SelectedIndex = 1;
+        inspectorScroll.ScrollToEnd();
         await Render(reviewWindow, Path.Combine(screenshot, "review-compact-deliver.png"));
+        inspectorScroll.ScrollToTop();
         inspectorTabs.SelectedIndex = 0; reviewWindow.Width = 1360; reviewWindow.Height = 820;
 
         reviewWindow.ShowHelpPopup();

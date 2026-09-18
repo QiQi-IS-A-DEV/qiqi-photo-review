@@ -194,6 +194,11 @@ publish.ps1            Script đóng gói portable cho Windows x64
 
 ## Phiên bản hiện tại
 
+**1.24.1 — Inspector theo góp ý kiểm duyệt**
+
+- Hai tab: Review + Deliver (Đánh giá + Bàn giao) | Tools (Công cụ).
+- Histogram đứng đầu, tiếp theo Rating & Flags, Rotate & Zoom và Deliver & RAW Workflow trong cùng vùng cuộn.
+
 **1.24.0 — Inspector và điều khiển Review**
 
 - Inspector chia Đánh giá / Bàn giao / Công cụ để truy cập nhanh từng nhóm thao tác.
