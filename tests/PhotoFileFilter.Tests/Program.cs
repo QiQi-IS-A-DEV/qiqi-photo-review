@@ -477,6 +477,12 @@ internal static class Program
         vm.DarkMode = true; vm.SaveSettings();
         Check(((SolidColorBrush)Application.Current.Resources["Surface"]).Color != Colors.White, "Dark mode changes application surface resources");
         vm.DarkMode = false;
+        Check(Application.Current.Resources.Contains("AppBackground") && Application.Current.Resources.Contains("FieldBackground") && !Application.Current.Resources.Contains("CF3F5F3"), "Theme resources expose semantic names instead of encoded color values");
+        var lightBackground = ((SolidColorBrush)Application.Current.Resources["AppBackground"]).Color;
+        ThemeService.Apply(true);
+        var darkBackground = ((SolidColorBrush)Application.Current.Resources["AppBackground"]).Color;
+        Check(lightBackground != darkBackground && darkBackground == (Color)ColorConverter.ConvertFromString("#1B1B1B"), "Light and dark palettes explicitly define the application background token");
+        ThemeService.Apply(false);
         var filterSettingsPath = Path.Combine(_root, "filter-session-settings.json");
         var guidedFilter = new MainViewModel(dialogs);
         Check(guidedFilter.WorkflowHint.StartsWith("Step 1/4"), "TXT Filter identifies the first required workflow step");

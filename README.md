@@ -156,7 +156,7 @@ dotnet build PhotoFileFilter.sln -c Release
 dotnet run --project tests/PhotoFileFilter.Tests/PhotoFileFilter.Tests.csproj -c Release
 ```
 
-Bộ kiểm thử hiện gồm **231 kiểm tra**, bao phủ parser TXT, quét thư mục, bảo vệ ảnh gốc, chính sách trùng tên, tạm dừng/tiếp tục và tiến độ copy theo byte, session Review và TXT Filter, chuyển ngôn ngữ trực tiếp, hướng dẫn sử dụng, rating, năm nhãn màu, export, Quick Preview, virtualization, xoay, zoom, preview, histogram và bố cục WPF.
+Bộ kiểm thử hiện gồm **233 kiểm tra**, bao phủ parser TXT, quét thư mục, bảo vệ ảnh gốc, chính sách trùng tên, tạm dừng/tiếp tục và tiến độ copy theo byte, session Review và TXT Filter, chuyển ngôn ngữ trực tiếp, semantic theme, hướng dẫn sử dụng, rating, năm nhãn màu, export, Quick Preview, virtualization, xoay, zoom, preview, histogram và bố cục WPF.
 
 ## Đóng gói bản portable
 
@@ -226,6 +226,12 @@ publish.ps1                         Đóng gói portable Windows x64
 Xem [bản đồ kiến trúc và quy tắc đặt file](docs/PROJECT-STRUCTURE.md) trước khi thêm tính năng. Hướng dẫn gửi thay đổi nằm trong [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Phiên bản hiện tại
+
+**1.29.0 — semantic theme**
+
+- Thay các khóa màu theo mã hex bằng token có ý nghĩa như `AppBackground`, `FieldBackground`, `SelectionBackground` và `WarningText`.
+- Khai báo palette sáng/tối rõ ràng trong một nơi, không còn suy diễn theme từ tên khóa màu.
+- Gom các màu riêng của workspace Review thành nhóm resource có tên để dễ đổi giao diện và bàn giao.
 
 **1.28.0 — tạm dừng và tiếp tục sao chép**
 

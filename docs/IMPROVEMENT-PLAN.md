@@ -133,3 +133,9 @@ Giao diện Review, TXT Filter và Quick Preview dùng `TranslateExtension` đ�
 TXT Filter có Pause/Resume trong lúc copy. `CopyPauseToken` dừng bất đồng bộ giữa các block mà không khóa UI; file đang ghi tiếp tục dùng tên tạm, còn file đã commit được giữ nguyên. Cancel khi đang pause vẫn đánh thức tác vụ và dọn file tạm.
 
 Khi tiếp tục, `FileCopyService` kiểm tra lại nguồn trước từng file nên file bị đổi hoặc xóa trong thời gian dừng được báo lỗi thay vì sao chép âm thầm. Kiểm chứng bản 1.28.0: 231 checks Release, gồm pause giữa file, resume không copy trùng và thay đổi nguồn sau checkpoint.
+
+## Phase 10 — phase-10-semantic-theme
+
+Đổi toàn bộ resource dùng chung từ tên mã hex sang token mô tả vai trò như `AppBackground`, `SurfaceSubtle`, `FieldBorder`, `SelectionBackground`, `SuccessText` và `WarningText`. `ThemeService` chứa palette tối tường minh theo cùng bộ token; palette sáng lấy trực tiếp từ `ThemeColors.xaml`.
+
+Các màu riêng của workspace Review được gom thành resource có tên ngay trong feature, giảm số màu lặp ở layout. Kiểm chứng bản 1.29.0: 233 checks Release và render lại các viewport sáng/tối hiện có.

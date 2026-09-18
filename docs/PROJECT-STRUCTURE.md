@@ -39,7 +39,7 @@ flowchart LR
 | `src/PhotoFileFilter.App/Shared/Localization` | Markup extension và binding cập nhật chuỗi giao diện khi đổi ngôn ngữ |
 | `src/PhotoFileFilter.App/Shared/UI` | Thành phần WPF dùng chung |
 | `src/PhotoFileFilter.App/Shared/ViewModels` | Base class và command dùng chung |
-| `src/PhotoFileFilter.App/Shared/Resources` | Style và màu toàn ứng dụng |
+| `src/PhotoFileFilter.App/Shared/Resources` | Style và semantic color token toàn ứng dụng; palette sáng/tối được áp dụng qua `ThemeService` |
 | `src/PhotoFileFilter.Core/Matching` | Phân tích và chuẩn hóa danh sách tên |
 | `src/PhotoFileFilter.Core/Scanning` | Quét thư mục và đối chiếu file |
 | `src/PhotoFileFilter.Core/Copying` | Sao chép an toàn, collision policy và tiến độ |

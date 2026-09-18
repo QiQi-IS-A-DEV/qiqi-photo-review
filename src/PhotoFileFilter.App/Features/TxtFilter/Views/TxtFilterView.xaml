@@ -2,10 +2,10 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:loc="clr-namespace:PhotoFileFilter.Shared.Localization"
         xmlns:services="clr-namespace:PhotoFileFilter.Shared.Services"
-        Background="{DynamicResource CF3F5F3}" Foreground="{DynamicResource C20343F}"
+        Background="{DynamicResource AppBackground}" Foreground="{DynamicResource Ink}"
         FontFamily="Segoe UI" FontSize="13" UseLayoutRounding="True" PreviewKeyDown="OnMainKeyDown">
     <UserControl.Resources>
-        <Style x:Key="GuideKeycap" TargetType="Border"><Setter Property="Background" Value="{DynamicResource CF2F5F7}"/><Setter Property="BorderBrush" Value="{DynamicResource Line}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="CornerRadius" Value="4"/><Setter Property="Padding" Value="6,2"/><Setter Property="HorizontalAlignment" Value="Left"/></Style>
+        <Style x:Key="GuideKeycap" TargetType="Border"><Setter Property="Background" Value="{DynamicResource SurfaceSubtle}"/><Setter Property="BorderBrush" Value="{DynamicResource Line}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="CornerRadius" Value="4"/><Setter Property="Padding" Value="6,2"/><Setter Property="HorizontalAlignment" Value="Left"/></Style>
         <Style x:Key="GuideTableHeader" TargetType="TextBlock"><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="HorizontalAlignment" Value="Center"/></Style>
     </UserControl.Resources>
     <UserControl.InputBindings>
@@ -13,7 +13,7 @@
         <KeyBinding Key="O" Modifiers="Control" Command="{Binding BrowseTxtCommand}"/>
         <KeyBinding Key="Escape" Command="{Binding CancelCommand}"/>
     </UserControl.InputBindings>
-    <Grid Background="{DynamicResource CF3F5F3}">
+    <Grid Background="{DynamicResource AppBackground}">
         <Grid.RowDefinitions>
             <RowDefinition Height="70"/>
             <RowDefinition Height="*"/>
@@ -21,15 +21,15 @@
         </Grid.RowDefinitions>
 
         <!-- Studio identity. The original PNG is embedded, independent of the source logo folder. -->
-        <Border Background="{DynamicResource C172E38}" Padding="22,10">
+        <Border Background="{DynamicResource HeaderBackground}" Padding="22,10">
             <Grid>
                 <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                 <Border Background="#FFFFFF" CornerRadius="10" Width="46" Height="46" Margin="0,0,14,0"><Image Source="/PhotoFileFilter;component/Assets/qiqistudio_nobackground.png" RenderOptions.BitmapScalingMode="HighQuality" AutomationProperties.Name="Logo QiQi Studio"/></Border>
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center"><Button Content="{loc:Translate Key='Help'}" Click="OnHelp" Margin="0,0,8,0" Padding="12,8" ToolTip="{loc:Translate Key='Open the TXT Filter guide (F1)'}"/><Button Content="{loc:Translate Key='Clear session'}" Click="OnClearFilterSession" Margin="0,0,10,0" Padding="12,8" ToolTip="{loc:Translate Key='Clear saved paths, the TXT list, and current results'}"/><CheckBox x:Name="ThemeToggle" Content="{loc:Translate Key='Dark theme'}" IsChecked="{Binding DarkMode}" Foreground="{DynamicResource CACBFC3}" FontSize="11" Margin="0,0,18,0"/><StackPanel VerticalAlignment="Center"><TextBlock Text="{loc:Translate Key='Filter Photos by TXT List'}" Foreground="White" FontWeight="SemiBold" FontSize="20"/><StackPanel Orientation="Horizontal"><TextBlock Text="{x:Static services:AppInfo.BrandVersion}" Foreground="{DynamicResource CACBFC3}" FontSize="9" Margin="0,0,10,0"/><TextBlock Text="{Binding WorkflowHint}" Foreground="#7FC5EA" FontSize="10" FontWeight="SemiBold" MaxWidth="260" TextTrimming="CharacterEllipsis" ToolTip="{Binding WorkflowHint}"/></StackPanel></StackPanel></StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center"><Button Content="{loc:Translate Key='Help'}" Click="OnHelp" Margin="0,0,8,0" Padding="12,8" ToolTip="{loc:Translate Key='Open the TXT Filter guide (F1)'}"/><Button Content="{loc:Translate Key='Clear session'}" Click="OnClearFilterSession" Margin="0,0,10,0" Padding="12,8" ToolTip="{loc:Translate Key='Clear saved paths, the TXT list, and current results'}"/><CheckBox x:Name="ThemeToggle" Content="{loc:Translate Key='Dark theme'}" IsChecked="{Binding DarkMode}" Foreground="{DynamicResource HeaderMutedText}" FontSize="11" Margin="0,0,18,0"/><StackPanel VerticalAlignment="Center"><TextBlock Text="{loc:Translate Key='Filter Photos by TXT List'}" Foreground="White" FontWeight="SemiBold" FontSize="20"/><StackPanel Orientation="Horizontal"><TextBlock Text="{x:Static services:AppInfo.BrandVersion}" Foreground="{DynamicResource HeaderMutedText}" FontSize="9" Margin="0,0,10,0"/><TextBlock Text="{Binding WorkflowHint}" Foreground="#7FC5EA" FontSize="10" FontWeight="SemiBold" MaxWidth="260" TextTrimming="CharacterEllipsis" ToolTip="{Binding WorkflowHint}"/></StackPanel></StackPanel></StackPanel>
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button x:Name="ReviewNavigationButton" Content="{loc:Translate Key='Import &amp; Review  ·  Ctrl+1'}" Click="OnOpenReview" Margin="0,0,7,0" Padding="14,8" ToolTip="{loc:Translate Key='Switch to the Import &amp; Review workspace (Ctrl+1)'}"/>
                     <Border Background="#287CAD" BorderBrush="#3B9BD6" BorderThickness="1" CornerRadius="4" Padding="14,8" Margin="0,0,12,0"><TextBlock Text="{loc:Translate Key='TXT Filter  ·  Ctrl+2'}" Foreground="White" FontWeight="SemiBold" TextWrapping="NoWrap"/></Border>
-                    <Border Background="{DynamicResource C26443F}" CornerRadius="12" Padding="12,6"><TextBlock Text="{loc:Translate Key='✓ Originals stay untouched'}" Foreground="{DynamicResource CBDE2CE}" FontSize="11"/></Border>
+                    <Border Background="{DynamicResource HeaderBadgeBackground}" CornerRadius="12" Padding="12,6"><TextBlock Text="{loc:Translate Key='✓ Originals stay untouched'}" Foreground="{DynamicResource HeaderSuccessText}" FontSize="11"/></Border>
                 </StackPanel>
             </Grid>
         </Border>
@@ -45,10 +45,10 @@
                                 <Border Style="{StaticResource Step}"><TextBlock Text="{loc:Translate Key='01'}" VerticalAlignment="Center" HorizontalAlignment="Center"/></Border>
                                 <TextBlock Text="{loc:Translate Key='Filename List'}" Style="{StaticResource SectionTitle}" VerticalAlignment="Center"/>
                             </StackPanel>
-                            <Button Command="{Binding BrowseTxtCommand}" Background="{DynamicResource CF5F9F6}" BorderBrush="{DynamicResource CD8E7DF}" Padding="11" HorizontalContentAlignment="Stretch" ToolTip="{Binding TxtFileHint}">
+                            <Button Command="{Binding BrowseTxtCommand}" Background="{DynamicResource DropBackground}" BorderBrush="{DynamicResource DropBorder}" Padding="11" HorizontalContentAlignment="Stretch" ToolTip="{Binding TxtFileHint}">
                                 <Grid>
                                     <Grid.ColumnDefinitions><ColumnDefinition Width="34"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
-                                    <TextBlock Text="{loc:Translate Key='&#xE8A5;'}" FontFamily="Segoe MDL2 Assets" FontSize="23" Foreground="{DynamicResource C3F8A73}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{loc:Translate Key='&#xE8A5;'}" FontFamily="Segoe MDL2 Assets" FontSize="23" Foreground="{DynamicResource AccentMuted}" VerticalAlignment="Center"/>
                                     <StackPanel Grid.Column="1">
                                         <TextBlock Text="{Binding TxtFileName}" FontSize="12" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
                                         <TextBlock Text="{loc:Translate Key='TXT · drop here or click to browse'}" Style="{StaticResource Caption}" FontSize="10" Margin="0,4,0,0"/>
@@ -103,7 +103,7 @@
                 <Border x:Name="OutputSettings" Style="{StaticResource Card}" Padding="16" Margin="0,14,0,0" IsEnabled="{Binding Idle}" Tag="output" AllowDrop="True" PreviewDragOver="OnFileDragOver" DragLeave="OnFileDragLeave" Drop="OnFileDrop">
                     <StackPanel>
                         <DockPanel Margin="0,0,0,12">
-                            <TextBlock DockPanel.Dock="Right" Text="{Binding SelectionSummary}" Foreground="{DynamicResource C5D8673}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                            <TextBlock DockPanel.Dock="Right" Text="{Binding SelectionSummary}" Foreground="{DynamicResource StatusText}" FontSize="12" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                             <StackPanel Orientation="Horizontal"><Border Style="{StaticResource Step}"><TextBlock Text="{loc:Translate Key='03'}" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="{loc:Translate Key='Destination'}" Style="{StaticResource SectionTitle}" VerticalAlignment="Center"/></StackPanel>
                         </DockPanel>
                         <WrapPanel Margin="0,0,0,10">
@@ -129,7 +129,7 @@
                             <Grid>
                                 <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                 <StackPanel VerticalAlignment="Center" Margin="0,0,15,0">
-                                    <TextBlock Text="{Binding Readiness}" Foreground="{DynamicResource C658170}" FontSize="10" FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding Readiness}" Foreground="{DynamicResource ReadyText}" FontSize="10" FontWeight="SemiBold"/>
                                     <TextBlock Text="{Binding DestinationPreview}" ToolTip="{Binding DestinationPreview}" FontSize="11" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" Margin="0,4,0,0"/>
                                 </StackPanel>
 
@@ -150,15 +150,15 @@
                             <TextBlock Text="{loc:Translate Key='Match Results'}" Style="{StaticResource SectionTitle}" VerticalAlignment="Center"/>
                         </DockPanel>
                         <StackPanel Grid.Row="1"><UniformGrid Columns="3" Margin="0,0,0,12">
-                            <Border Background="{DynamicResource CF2F5F7}" CornerRadius="10" Padding="14,10" Margin="0,0,8,0"><StackPanel><TextBlock Text="{Binding RequestedCount, StringFormat={}{0:N0}}" FontSize="24" FontWeight="SemiBold"/><TextBlock Text="{loc:Translate Key='Requested names'}" Style="{StaticResource Caption}" FontSize="11"/></StackPanel></Border>
-                            <Border Background="{DynamicResource CEAF4ED}" CornerRadius="10" Padding="14,10" Margin="0,0,8,0"><StackPanel><TextBlock Text="{Binding MatchedCount, StringFormat={}{0:N0}}" FontSize="24" FontWeight="SemiBold" Foreground="{DynamicResource C247650}"/><TextBlock Text="{loc:Translate Key='Files found'}" Style="{StaticResource Caption}" FontSize="11"/></StackPanel></Border>
-                            <Border Background="{DynamicResource CFBF4E7}" CornerRadius="10" Padding="14,10"><StackPanel><TextBlock Text="{Binding MissingCount, StringFormat={}{0:N0}}" FontSize="24" FontWeight="SemiBold" Foreground="{DynamicResource CA87928}"/><TextBlock Text="{loc:Translate Key='Names not found'}" Style="{StaticResource Caption}" FontSize="11"/></StackPanel></Border>
-                        </UniformGrid><TextBlock Text="{Binding FormatBreakdown}" FontSize="11" Foreground="{DynamicResource C5D8673}" Margin="0,0,0,8"/></StackPanel>
+                            <Border Background="{DynamicResource SurfaceSubtle}" CornerRadius="10" Padding="14,10" Margin="0,0,8,0"><StackPanel><TextBlock Text="{Binding RequestedCount, StringFormat={}{0:N0}}" FontSize="24" FontWeight="SemiBold"/><TextBlock Text="{loc:Translate Key='Requested names'}" Style="{StaticResource Caption}" FontSize="11"/></StackPanel></Border>
+                            <Border Background="{DynamicResource SuccessBackground}" CornerRadius="10" Padding="14,10" Margin="0,0,8,0"><StackPanel><TextBlock Text="{Binding MatchedCount, StringFormat={}{0:N0}}" FontSize="24" FontWeight="SemiBold" Foreground="{DynamicResource SuccessText}"/><TextBlock Text="{loc:Translate Key='Files found'}" Style="{StaticResource Caption}" FontSize="11"/></StackPanel></Border>
+                            <Border Background="{DynamicResource WarningBackground}" CornerRadius="10" Padding="14,10"><StackPanel><TextBlock Text="{Binding MissingCount, StringFormat={}{0:N0}}" FontSize="24" FontWeight="SemiBold" Foreground="{DynamicResource WarningText}"/><TextBlock Text="{loc:Translate Key='Names not found'}" Style="{StaticResource Caption}" FontSize="11"/></StackPanel></Border>
+                        </UniformGrid><TextBlock Text="{Binding FormatBreakdown}" FontSize="11" Foreground="{DynamicResource StatusText}" Margin="0,0,0,8"/></StackPanel>
                         <DockPanel Grid.Row="2" Margin="0,0,0,5">
                             <Button DockPanel.Dock="Right" Content="{loc:Translate Key='×'}" Command="{Binding ClearSearchCommand}" Style="{StaticResource QuietButton}" FontSize="18" ToolTip="{loc:Translate Key='Clear search'}" AutomationProperties.Name="Clear search"/>
                             <Grid>
                                 <TextBox x:Name="SearchBox" Tag="Search by filename or folder…" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged, Delay=180}" Padding="32,8,10,8" FontSize="12" AutomationProperties.Name="Search results"/>
-                                <TextBlock Text="{loc:Translate Key='&#xE721;'}" FontFamily="Segoe MDL2 Assets" Foreground="{DynamicResource C8B9B92}" VerticalAlignment="Center" Margin="11,0,0,0" IsHitTestVisible="False"/>
+                                <TextBlock Text="{loc:Translate Key='&#xE721;'}" FontFamily="Segoe MDL2 Assets" Foreground="{DynamicResource SearchIcon}" VerticalAlignment="Center" Margin="11,0,0,0" IsHitTestVisible="False"/>
                                 
                             </Grid>
                         </DockPanel>
@@ -186,11 +186,11 @@
                                     <Button DockPanel.Dock="Top" Content="{loc:Translate Key='Copy all missing names'}" Command="{Binding CopyMissingCommand}" HorizontalAlignment="Left" Margin="0,3,0,8" FontSize="11"/>
                                     <ListBox ItemsSource="{Binding VisibleMissing}" BorderThickness="0" Padding="8" FontFamily="Consolas" FontWeight="Normal" VirtualizingPanel.IsVirtualizing="True" ScrollViewer.CanContentScroll="True"/>
                                 </DockPanel></TabItem>
-                                <TabItem Header="{Binding IssuesTab}"><ListBox ItemsSource="{Binding Issues}" BorderThickness="0" Padding="8" FontWeight="Normal" ScrollViewer.HorizontalScrollBarVisibility="Disabled"><ListBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="4" Foreground="{DynamicResource C9B5B20}"/></DataTemplate></ListBox.ItemTemplate></ListBox></TabItem>
+                                <TabItem Header="{Binding IssuesTab}"><ListBox ItemsSource="{Binding Issues}" BorderThickness="0" Padding="8" FontWeight="Normal" ScrollViewer.HorizontalScrollBarVisibility="Disabled"><ListBox.ItemTemplate><DataTemplate><TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="4" Foreground="{DynamicResource WarningStrong}"/></DataTemplate></ListBox.ItemTemplate></ListBox></TabItem>
                             </TabControl>
                             <Border Background="{DynamicResource Surface}" Margin="0,43,0,0" Visibility="{Binding HasNoResults, Converter={StaticResource BoolVisibility}}" IsHitTestVisible="False">
                                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                            <Border Background="{DynamicResource CEFF5F0}" Width="48" Height="48" CornerRadius="6" HorizontalAlignment="Center" Margin="0,0,0,11"><TextBlock Text="{loc:Translate Key='&#xEB9F;'}" FontFamily="Segoe MDL2 Assets" FontSize="23" Foreground="{DynamicResource C8CA999}" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                            <Border Background="{DynamicResource EmptyBackground}" Width="48" Height="48" CornerRadius="6" HorizontalAlignment="Center" Margin="0,0,0,11"><TextBlock Text="{loc:Translate Key='&#xEB9F;'}" FontFamily="Segoe MDL2 Assets" FontSize="23" Foreground="{DynamicResource EmptyIcon}" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                                     <TextBlock Text="{loc:Translate Key='Bring every selected photo into one place.'}" FontSize="13" FontWeight="SemiBold" HorizontalAlignment="Center"/>
                                     <TextBlock Text="{loc:Translate Key='Add a filename list and scan your source folder to begin.'}" Style="{StaticResource Caption}" FontSize="11" Margin="0,5,0,0" HorizontalAlignment="Center"/>
                                 </StackPanel>
@@ -212,8 +212,8 @@
                     <TextBlock Text="{Binding Status}" FontWeight="SemiBold" FontSize="12"/>
                         <TextBlock Text="{Binding Detail}" ToolTip="{Binding Detail}" Style="{StaticResource Caption}" FontSize="11" Margin="0,3,0,0" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" MaxWidth="680"/>
                         <TextBlock Text="{Binding DestinationPreview}" ToolTip="{Binding DestinationPreview}" Style="{StaticResource Caption}" FontSize="10" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" Margin="0,3,0,0" MaxWidth="680"/>
-                    <ProgressBar Value="{Binding Progress, Mode=OneWay}" IsIndeterminate="{Binding Scanning}" Maximum="100" Height="8" Foreground="{DynamicResource C127C74}" Background="{DynamicResource CEDF3EF}" BorderThickness="0" Margin="0,7,0,0"/>
-                    <TextBlock Text="{Binding CurrentFile}" FontSize="10" Foreground="{DynamicResource C74838B}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" Visibility="{Binding Busy, Converter={StaticResource BoolVisibility}}"/>
+                    <ProgressBar Value="{Binding Progress, Mode=OneWay}" IsIndeterminate="{Binding Scanning}" Maximum="100" Height="8" Foreground="{DynamicResource Accent}" Background="{DynamicResource ProgressTrack}" BorderThickness="0" Margin="0,7,0,0"/>
+                    <TextBlock Text="{Binding CurrentFile}" FontSize="10" Foreground="{DynamicResource Muted}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" Visibility="{Binding Busy, Converter={StaticResource BoolVisibility}}"/>
                 </StackPanel>
                 <StackPanel Grid.Column="1">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
@@ -233,12 +233,12 @@
                 <Grid>
                     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                     <DockPanel Margin="0,0,0,16">
-                        <TextBlock DockPanel.Dock="Right" Text="{loc:Translate Key='F1'}" Foreground="{DynamicResource C5D8673}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <TextBlock DockPanel.Dock="Right" Text="{loc:Translate Key='F1'}" Foreground="{DynamicResource StatusText}" FontWeight="SemiBold" VerticalAlignment="Center"/>
                         <StackPanel><TextBlock Text="{loc:Translate Key='QiQi Studio TXT Filter Guide'}" FontSize="22" FontWeight="SemiBold"/><TextBlock Text="{loc:Translate Key='Match a filename list with JPG or RAW originals, then copy the files into one folder.'}" Style="{StaticResource Caption}" Margin="0,4,0,0"/></StackPanel>
                     </DockPanel>
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel Margin="0,0,12,0">
-                            <TextBlock Text="{loc:Translate Key='WORKFLOW'}" Style="{StaticResource Eyebrow}" Foreground="{DynamicResource C3F8A73}" Margin="0,0,0,9"/>
+                            <TextBlock Text="{loc:Translate Key='WORKFLOW'}" Style="{StaticResource Eyebrow}" Foreground="{DynamicResource AccentMuted}" Margin="0,0,0,9"/>
                             <TextBlock TextWrapping="Wrap" LineHeight="21"><Run FontWeight="SemiBold" Text="{loc:Translate Key='1. Add the filename list. '}"/><Run Text="{loc:Translate Key='Choose a TXT file or drop it onto Filename List. The list can contain names such as IMG_1001 or IMG_1002.JPG.'}"/></TextBlock>
                             <TextBlock TextWrapping="Wrap" LineHeight="21" Margin="0,8,0,0"><Run FontWeight="SemiBold" Text="{loc:Translate Key='2. Set the matching rules. '}"/><Run Text="{loc:Translate Key='Choose how names are separated. Keep Ignore file extensions enabled when a JPG list should find RAW files with the same base name.'}"/></TextBlock>
                             <TextBlock TextWrapping="Wrap" LineHeight="21" Margin="0,8,0,0"><Run FontWeight="SemiBold" Text="{loc:Translate Key='3. Choose the source photos. '}"/><Run Text="{loc:Translate Key='Select JPG, RAW, All, or individual file types. Choose the folder that contains the originals and enable Search subfolders when needed.'}"/></TextBlock>
@@ -246,13 +246,13 @@
                             <TextBlock TextWrapping="Wrap" LineHeight="21" Margin="0,8,0,0"><Run FontWeight="SemiBold" Text="{loc:Translate Key='5. Copy the selected files. '}"/><Run Text="{loc:Translate Key='Choose the destination and the action for duplicate filenames, then select Copy Photos and confirm the summary.'}"/></TextBlock>
 
                             <Border BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0" Margin="0,16,0,14"/>
-                            <TextBlock Text="{loc:Translate Key='MATCHING NOTES'}" Style="{StaticResource Eyebrow}" Foreground="{DynamicResource C3F8A73}" Margin="0,0,0,8"/>
+                            <TextBlock Text="{loc:Translate Key='MATCHING NOTES'}" Style="{StaticResource Eyebrow}" Foreground="{DynamicResource AccentMuted}" Margin="0,0,0,8"/>
                             <TextBlock Text="{loc:Translate Key='• Matching is not case-sensitive.&#x0a;• With extensions ignored, IMG_1001.JPG can match IMG_1001.CR3 or IMG_1001.ARW.&#x0a;• The TXT file should contain filenames, not full folder paths.&#x0a;• QiQi Studio copies selected files and never modifies the originals.'}" TextWrapping="Wrap" LineHeight="21"/>
 
-                            <TextBlock Text="{loc:Translate Key='SHORTCUTS'}" Style="{StaticResource Eyebrow}" Foreground="{DynamicResource C3F8A73}" Margin="0,16,0,8"/>
+                            <TextBlock Text="{loc:Translate Key='SHORTCUTS'}" Style="{StaticResource Eyebrow}" Foreground="{DynamicResource AccentMuted}" Margin="0,16,0,8"/>
                             <Border BorderBrush="{DynamicResource Line}" BorderThickness="1">
                                 <Grid x:Name="FilterGuideShortcuts"><Grid.ColumnDefinitions><ColumnDefinition Width="165"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition Height="34"/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
-                                    <Border Background="{DynamicResource CF2F5F7}" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,1,1" Padding="10,7"><TextBlock Text="{loc:Translate Key='KEY'}" Style="{StaticResource GuideTableHeader}"/></Border><Border Grid.Column="1" Background="{DynamicResource CF2F5F7}" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1" Padding="10,7"><TextBlock Text="{loc:Translate Key='ACTION'}" Style="{StaticResource GuideTableHeader}"/></Border>
+                                    <Border Background="{DynamicResource SurfaceSubtle}" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,1,1" Padding="10,7"><TextBlock Text="{loc:Translate Key='KEY'}" Style="{StaticResource GuideTableHeader}"/></Border><Border Grid.Column="1" Background="{DynamicResource SurfaceSubtle}" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1" Padding="10,7"><TextBlock Text="{loc:Translate Key='ACTION'}" Style="{StaticResource GuideTableHeader}"/></Border>
                                     <Border Grid.Row="1" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,1,1" Padding="10,6"><Border Style="{StaticResource GuideKeycap}"><TextBlock Text="{loc:Translate Key='Ctrl+1 / Ctrl+2'}" FontFamily="Consolas"/></Border></Border><Border Grid.Row="1" Grid.Column="1" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1" Padding="12,7"><TextBlock Text="{loc:Translate Key='Switch between Review and TXT Filter'}"/></Border>
                                     <Border Grid.Row="2" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,1,1" Padding="10,6"><Border Style="{StaticResource GuideKeycap}"><TextBlock Text="{loc:Translate Key='Ctrl+O'}" FontFamily="Consolas"/></Border></Border><Border Grid.Row="2" Grid.Column="1" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1" Padding="12,7"><TextBlock Text="{loc:Translate Key='Choose a TXT list'}"/></Border>
                                     <Border Grid.Row="3" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,1,1" Padding="10,6"><Border Style="{StaticResource GuideKeycap}"><TextBlock Text="{loc:Translate Key='F5'}" FontFamily="Consolas"/></Border></Border><Border Grid.Row="3" Grid.Column="1" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1" Padding="12,7"><TextBlock Text="{loc:Translate Key='Scan the source folder'}"/></Border>
@@ -268,4 +268,3 @@
         </Grid>
     </Grid>
 </UserControl>
-

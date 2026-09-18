@@ -5,7 +5,7 @@
         xmlns:services="clr-namespace:PhotoFileFilter.Shared.Services"
  Title="{x:Static services:AppInfo.FilterTitle}" Icon="/PhotoFileFilter;component/Assets/qiqistudio.ico"
  Width="1280" Height="900" MinWidth="960" MinHeight="620"
- WindowStartupLocation="CenterScreen" Background="{DynamicResource CF3F5F3}"
- Foreground="{DynamicResource C20343F}" FontFamily="Segoe UI" FontSize="13">
+ WindowStartupLocation="CenterScreen" Background="{DynamicResource AppBackground}"
+ Foreground="{DynamicResource Ink}" FontFamily="Segoe UI" FontSize="13">
  <local:TxtFilterView x:Name="FilterView"/>
 </Window>
