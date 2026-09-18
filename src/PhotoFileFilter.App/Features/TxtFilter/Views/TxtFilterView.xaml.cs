@@ -18,7 +18,6 @@ public partial class TxtFilterView : UserControl
     public TxtFilterView()
     {
         InitializeComponent(); DataContext = new MainViewModel(new DialogService(), new SettingsService());
-        Loaded += (_, _) => LanguageService.Apply(this);
         Unloaded += (_, _) => ClearDropHighlight();
     }
     private void OnFileDragOver(object sender, DragEventArgs e)
@@ -101,9 +100,17 @@ public partial class TxtFilterView : UserControl
     }
     public void ConfigureForReview()
     {
-        ReviewNavigationButton.Content = "←  Back to Review  ·  Ctrl+1";
-        ReviewNavigationButton.ToolTip = "Return to the Import & Review workspace";
+        RefreshLanguage();
         ThemeToggle.Visibility = Visibility.Collapsed;
+    }
+    public void RefreshLanguage()
+    {
+        if (DataContext is MainViewModel vm) vm.RefreshLanguage();
+        if (ThemeToggle.Visibility == Visibility.Collapsed)
+        {
+            ReviewNavigationButton.Content = LanguageService.Text("←  Back to Review  ·  Ctrl+1");
+            ReviewNavigationButton.ToolTip = LanguageService.Text("Return to the Import & Review workspace");
+        }
     }
     public void SaveSettings() => (DataContext as MainViewModel)?.SaveSettings();
     private void OnResultsDoubleClick(object sender, MouseButtonEventArgs e)

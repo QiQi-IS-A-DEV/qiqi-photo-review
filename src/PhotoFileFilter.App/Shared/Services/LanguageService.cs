@@ -1,15 +1,23 @@
-using System.Diagnostics;
+using System.ComponentModel;
 using System.IO;
 using System.Text.Json;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Documents;
-using System.Windows.Media;
 
 namespace PhotoFileFilter.Shared.Services;
 
 public static class LanguageService
 {
+    public sealed class LanguageState : INotifyPropertyChanged
+    {
+        private int _revision;
+        public int Revision => _revision;
+        public event PropertyChangedEventHandler? PropertyChanged;
+        internal void Refresh()
+        {
+            _revision++;
+            PropertyChanged?.Invoke(this, new(nameof(Revision)));
+        }
+    }
+
     private sealed record SavedLanguage(string Language);
     public const string English = "en", Vietnamese = "vi";
     public static string FilePath { get; } = Environment.GetEnvironmentVariable("QIQI_LANGUAGE_FILE") is { Length: > 0 } overridePath
@@ -18,6 +26,8 @@ public static class LanguageService
     public static string CurrentLanguage { get; private set; } = English;
     public static bool IsVietnamese => CurrentLanguage == Vietnamese;
     public static bool HasSavedLanguage => File.Exists(FilePath);
+    public static LanguageState State { get; } = new();
+    public static event EventHandler? LanguageChanged;
 
     private static readonly Dictionary<string, string> Vi = new(StringComparer.Ordinal)
     {
@@ -90,7 +100,7 @@ public static class LanguageService
         ["No data"]="Không có dữ liệu", ["Preview memory released."]="Đã giải phóng bộ nhớ preview.", ["Preview memory released. Select a photo to load it again."]="Đã giải phóng bộ nhớ preview. Chọn ảnh để tải lại.",
         ["Photo Preview · QiQi Studio"]="Xem ảnh · QiQi Studio"
         , ["APP LANGUAGE"]="NGÔN NGỮ ỨNG DỤNG", ["Interface language"]="Ngôn ngữ giao diện", ["Vietnamese"]="Tiếng Việt", ["English"]="English"
-        , ["The app restarts after you confirm a language change."]="App sẽ khởi động lại sau khi bạn xác nhận đổi ngôn ngữ."
+        , ["Language changes apply immediately."]="Thay đổi ngôn ngữ được áp dụng ngay."
         , ["1. Select Import folder, or drop photos or a folder anywhere in this window.\n2. Review in Grid. Double-click a photo or press Space to open Loupe; press Space again to return to Grid. Adjust thumbnail size below the Grid.\n3. Rate with 0–5, add color labels with 6–9 or T, and mark Pick/Reject with P/X/U. Hover over stars to preview a rating before clicking.\n4. Use Photo Filter to narrow the catalog. Resize the Filmstrip by dragging its top edge, or press Ctrl+F to hide/show it.\n5. In Review + Deliver, export visible names, send them to TXT Filter, or copy the rated photos currently visible.\n6. In TXT Filter, choose the RAW source and destination, scan the matches, preview results, then copy the selected files."]="1. Chọn Nhập thư mục, hoặc kéo ảnh hay thư mục vào cửa sổ.\n2. Review trong Grid. Nhấp đúp ảnh hoặc nhấn Space để mở Loupe; nhấn Space lần nữa để về Grid. Chỉnh cỡ thumbnail bên dưới Grid.\n3. Chấm sao bằng 0–5, gắn nhãn màu bằng 6–9 hoặc T, và đánh dấu Pick/Reject bằng P/X/U. Rê chuột trên sao để xem trước rating trước khi bấm.\n4. Dùng Lọc ảnh để thu hẹp catalog. Kéo mép trên Filmstrip để đổi chiều cao, hoặc nhấn Ctrl+F để ẩn/hiện.\n5. Trong Đánh giá + Bàn giao, xuất tên đang hiện, gửi sang Lọc TXT hoặc chép các ảnh đã Rating đang hiện.\n6. Trong Lọc TXT, chọn nguồn RAW và thư mục đích, quét kết quả, xem nhanh rồi chép các file đã chọn."
         , ["Use Ctrl+click to add or remove individual photos, or Shift+click to select a range. Double-click or press Space to open Loupe; press Space again to return to Grid. In Loupe, click once to zoom toward the pointer and click again to return to Fit. Use the mouse wheel for gradual pointer-centered zoom. While zoomed in, drag to inspect hidden areas. Right-click for export, rating, color, flag, and rotation actions."]="Dùng Ctrl+click để thêm hoặc bỏ từng ảnh; Shift+click để chọn một dải ảnh. Nhấp đúp hoặc nhấn Space để mở Loupe; nhấn Space lần nữa để về Grid. Trong Loupe, bấm một lần để zoom vào vị trí con trỏ và bấm lại để về Fit. Dùng con lăn để zoom dần và kéo ảnh khi đã phóng to. Nhấp chuột phải để xuất ảnh, chấm sao, gắn màu, cờ hoặc xoay."
         , ["Ratings, flags, color labels, and rotation are saved locally. Original files remain unchanged."]="Rating, cờ, nhãn màu và góc xoay được lưu trong app. File gốc không bị thay đổi."
@@ -106,14 +116,33 @@ public static class LanguageService
         , ["Open this guide · press Esc to close"]="Mở hướng dẫn · nhấn Esc để đóng"
         , ["• Matching is not case-sensitive.\n• With extensions ignored, IMG_1001.JPG can match IMG_1001.CR3 or IMG_1001.ARW.\n• The TXT file should contain filenames, not full folder paths.\n• QiQi Studio copies selected files and never modifies the originals."]="• Không phân biệt chữ hoa và chữ thường.\n• Khi bỏ qua phần mở rộng, IMG_1001.JPG có thể khớp IMG_1001.CR3 hoặc IMG_1001.ARW.\n• TXT nên chứa tên file, không phải đường dẫn đầy đủ.\n• QiQi Studio chỉ sao chép file đã chọn và không sửa ảnh gốc."
         , ["Switch between Review and TXT Filter"]="Chuyển giữa Review và Lọc TXT", ["Choose a TXT list"]="Chọn danh sách TXT", ["Scan the source folder"]="Quét thư mục nguồn", ["Open Quick Preview for the selected result"]="Mở Xem nhanh cho kết quả đang chọn", ["Cancel an operation / close this guide"]="Hủy thao tác / đóng hướng dẫn"
+        , ["← / → browse · Wheel to zoom · Drag to pan · R rotate · Esc close"]="← / → đổi ảnh · Con lăn zoom · Kéo để di chuyển · R xoay · Esc đóng"
+        , ["Fit"]="Vừa khung", ["Rotate 90°"]="Xoay 90°", ["Previous photo"]="Ảnh trước", ["Next photo"]="Ảnh sau", ["Zoom out"]="Thu nhỏ", ["Zoom in"]="Phóng to"
+        , ["Return to the Import & Review workspace"]="Trở về không gian Nhập & Review"
     };
 
     public static void Initialize() { try { if (File.Exists(FilePath)) CurrentLanguage = Normalize(JsonSerializer.Deserialize<SavedLanguage>(File.ReadAllText(FilePath))?.Language); } catch { CurrentLanguage = English; } }
-    public static void Set(string language) { UseForCurrentProcess(language); Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!); File.WriteAllText(FilePath, JsonSerializer.Serialize(new SavedLanguage(CurrentLanguage), new JsonSerializerOptions { WriteIndented = true })); }
-    public static void UseForCurrentProcess(string language) => CurrentLanguage = Normalize(language);
+    private static readonly Lazy<Dictionary<string, string>> EnglishByVietnamese = new(() =>
+        Vi.GroupBy(pair => pair.Value, StringComparer.Ordinal).ToDictionary(group => group.Key, group => group.First().Key, StringComparer.Ordinal));
+
+    public static void Set(string language)
+    {
+        UseForCurrentProcess(language);
+        Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
+        File.WriteAllText(FilePath, JsonSerializer.Serialize(new SavedLanguage(CurrentLanguage), new JsonSerializerOptions { WriteIndented = true }));
+    }
+    public static void UseForCurrentProcess(string language)
+    {
+        var normalized = Normalize(language);
+        if (CurrentLanguage == normalized) return;
+        CurrentLanguage = normalized;
+        State.Refresh();
+        LanguageChanged?.Invoke(null, EventArgs.Empty);
+    }
     private static string Normalize(string? value) => string.Equals(value, Vietnamese, StringComparison.OrdinalIgnoreCase) ? Vietnamese : English;
     public static string Text(string value)
     {
+        if (EnglishByVietnamese.Value.TryGetValue(value, out var english)) value = english;
         if (!IsVietnamese) return value;
         if (Vi.TryGetValue(value, out var translated)) return translated;
         if (value.StartsWith("Checked ")) return value.Replace("Checked ", "Đã kiểm tra ").Replace(" files…", " file…");
@@ -128,25 +157,4 @@ public static class LanguageService
         return value;
     }
     public static string[] Texts(params string[] values) => values.Select(Text).ToArray();
-
-    public static void Apply(DependencyObject root)
-    {
-        if (!IsVietnamese) return;
-        ApplyCore(root, new());
-    }
-    private static void ApplyCore(DependencyObject node, HashSet<DependencyObject> visited)
-    {
-        if (!visited.Add(node)) return;
-        if (node is Window window) window.Title = Text(window.Title);
-        if (node is TextBlock text && text.Inlines.Count <= 1 && !System.Windows.Data.BindingOperations.IsDataBound(text, TextBlock.TextProperty)) text.SetCurrentValue(TextBlock.TextProperty, Text(text.Text));
-        if (node is Run run && !System.Windows.Data.BindingOperations.IsDataBound(run, Run.TextProperty)) run.SetCurrentValue(Run.TextProperty, Text(run.Text));
-        if (node is ContentControl content && content.Content is string value) content.SetCurrentValue(ContentControl.ContentProperty, Text(value));
-        if (node is HeaderedContentControl header && header.Header is string title) header.SetCurrentValue(HeaderedContentControl.HeaderProperty, Text(title));
-        if (node is HeaderedItemsControl itemsHeader && itemsHeader.Header is string itemsTitle) itemsHeader.SetCurrentValue(HeaderedItemsControl.HeaderProperty, Text(itemsTitle));
-        if (node is FrameworkElement element) { if (element.ToolTip is string tip) element.ToolTip = Text(tip); if (element.ContextMenu is { } menu) ApplyCore(menu, visited); }
-        if (node is FrameworkElement tagged && tagged.Tag is string tag && Vi.ContainsKey(tag)) tagged.Tag = Text(tag);
-        foreach (var child in LogicalTreeHelper.GetChildren(node).OfType<DependencyObject>().ToArray()) ApplyCore(child, visited);
-        if (node is Visual or System.Windows.Media.Media3D.Visual3D) for (var i = 0; i < VisualTreeHelper.GetChildrenCount(node); i++) ApplyCore(VisualTreeHelper.GetChild(node, i), visited);
-    }
-    public static void Restart() { if (Environment.ProcessPath is { Length: > 0 } path) Process.Start(new ProcessStartInfo(path) { UseShellExecute = true }); Application.Current.Shutdown(); }
 }

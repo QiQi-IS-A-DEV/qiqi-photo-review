@@ -44,7 +44,7 @@ public partial class ReviewWindow : Window
         Width = Math.Min(Width, SystemParameters.WorkArea.Width); Height = Math.Min(Height, SystemParameters.WorkArea.Height);
         Loaded += async (_, _) =>
         {
-            LanguageService.Apply(this); _languageReady = true;
+            _languageReady = true;
             if (_initialFolder != null) await _viewModel.ImportAsync(_initialFolder);
             else await _viewModel.RestoreSessionAsync();
             if (_viewModel.StartWithPanelsHidden && !_zenMode) ToggleZenMode();
@@ -299,21 +299,10 @@ public partial class ReviewWindow : Window
     private void OnLanguageChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!_languageReady || LanguageCombo.SelectedValue is not string language || language == LanguageService.CurrentLanguage) return;
-        var vietnamese = language == LanguageService.Vietnamese;
-        var message = vietnamese
-            ? "Chuyển giao diện sang Tiếng Việt?\n\nỨng dụng sẽ lưu phiên hiện tại và tự khởi động lại để áp dụng ngôn ngữ."
-            : "Switch the interface to English?\n\nThe app will save the current session and restart to apply the language.";
-        var title = vietnamese ? "Xác nhận đổi ngôn ngữ" : "Confirm Language Change";
-        if (MessageBox.Show(this, message, title, MessageBoxButton.OKCancel, MessageBoxImage.Question, MessageBoxResult.Cancel) == MessageBoxResult.OK)
-        {
-            _viewModel.SaveSessionNow();
-            _filterView?.SaveSettings();
-            LanguageService.Set(language); LanguageService.Restart();
-        }
-        else
-        {
-            _languageReady = false; LanguageCombo.SelectedValue = LanguageService.CurrentLanguage; _languageReady = true;
-        }
+        LanguageService.Set(language);
+        _viewModel.RefreshLanguage();
+        _filterView?.RefreshLanguage();
+        Title = FilterHost.Visibility == Visibility.Visible ? AppInfo.FilterTitle : AppInfo.ReviewTitle;
     }
     private void OnResetSettings(object sender, RoutedEventArgs e) => _viewModel.ResetPreferences();
     private void HideSettingsPopup() { SettingsOverlay.Visibility = Visibility.Collapsed; Focus(); }

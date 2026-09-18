@@ -36,6 +36,7 @@ flowchart LR
 | `src/PhotoFileFilter.App/Features/TxtFilter/Models` | Kiểu dữ liệu giao diện chỉ thuộc TXT Filter |
 | `src/PhotoFileFilter.App/Features/TxtFilter/Services` | Lưu/khôi phục cấu hình TXT Filter |
 | `src/PhotoFileFilter.App/Shared/Services` | Dịch vụ dùng bởi từ hai feature trở lên: dialog, ngôn ngữ, theme và preview |
+| `src/PhotoFileFilter.App/Shared/Localization` | Markup extension và binding cập nhật chuỗi giao diện khi đổi ngôn ngữ |
 | `src/PhotoFileFilter.App/Shared/UI` | Thành phần WPF dùng chung |
 | `src/PhotoFileFilter.App/Shared/ViewModels` | Base class và command dùng chung |
 | `src/PhotoFileFilter.App/Shared/Resources` | Style và màu toàn ứng dụng |
@@ -60,6 +61,7 @@ flowchart LR
 5. XAML và code-behind phải nằm cạnh nhau trong `Views`.
 6. Không đưa output build, ảnh test render hoặc bản portable vào Git. Các file đó thuộc `artifacts`, `bin` hoặc `obj`.
 7. Không thay đổi ảnh nguồn của người dùng. Mọi thay đổi liên quan copy phải giữ temporary-file commit, kiểm tra đường dẫn và chính sách collision.
+8. Chuỗi tĩnh trong XAML dùng `loc:Translate`; chuỗi động dùng `LanguageService.Text` và phải được thông báo lại trong `RefreshLanguage` của view model.
 
 ## Khi thêm một feature mới
 

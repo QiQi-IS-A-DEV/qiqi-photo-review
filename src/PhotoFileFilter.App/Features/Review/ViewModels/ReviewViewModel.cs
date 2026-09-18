@@ -85,10 +85,10 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
 
     public ObservableCollection<ReviewPhoto> Photos { get; } = [];
     public ObservableCollection<ReviewPhoto> FilteredPhotos { get; } = [];
-    public string[] Filters { get; } = LanguageService.Texts("All Photos", "Pick", "≥ 1 Star", "≥ 3 Stars", "5 Stars", "Reject", "Unrated", "Red Label", "Yellow Label", "Green Label", "Blue Label", "Purple Label");
-    public string[] ExportPolicies { get; } = LanguageService.Texts("Rename — keep both", "Skip existing files", "Replace destination files");
+    public string[] Filters => LanguageService.Texts("All Photos", "Pick", "≥ 1 Star", "≥ 3 Stars", "5 Stars", "Reject", "Unrated", "Red Label", "Yellow Label", "Green Label", "Blue Label", "Purple Label");
+    public string[] ExportPolicies => LanguageService.Texts("Rename — keep both", "Skip existing files", "Replace destination files");
     public int[] PreviewSizeOptions { get; } = [1200, 1800, 2400, 3600, 4800, 0];
-    public PreviewQualityOption[] PreviewQualityOptions { get; } =
+    public PreviewQualityOption[] PreviewQualityOptions =>
     [
         new(1200, LanguageService.Text("Fast · 1,200 px")),
         new(1800, LanguageService.Text("Balanced · 1,800 px")),
@@ -100,7 +100,7 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     public int[] ZoomStepOptions { get; } = [10, 25, 50];
     public int[] ClickZoomOptions { get; } = [125, 150, 200, 300, 400, 800];
     public int[] OverlayDurationOptions { get; } = [600, 950, 1500];
-    public string[] OverlayPositionOptions { get; } = LanguageService.Texts("Bottom of photo", "Center of photo");
+    public string[] OverlayPositionOptions => LanguageService.Texts("Bottom of photo", "Center of photo");
     public string[] DefaultViewOptions { get; } = ["Grid", "Loupe"];
     public string[] HelpShortcutOptions { get; } = ["F1", "Ctrl+H"];
     public string[] ZenShortcutOptions { get; } = ["Tab", "F"];
@@ -759,6 +759,14 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     {
         foreach (var name in new[] { nameof(PickCount), nameof(RejectCount), nameof(RatedCount), nameof(ColorCount), nameof(CatalogSummary), nameof(PositionLabel), nameof(HasNoPhotos), nameof(HasNoFilteredPhotos), nameof(VisibleScopeSummary), nameof(SendVisibleLabel), nameof(ExportVisibleNamesLabel), nameof(CopyVisibleRatedLabel) }) Notify(name);
         RefreshCommands();
+    }
+    public void RefreshLanguage()
+    {
+        Status = LanguageService.Text(Status);
+        PreviewMessage = LanguageService.Text(PreviewMessage);
+        HistogramSummary = LanguageService.Text(HistogramSummary);
+        HistogramAssessment = LanguageService.Text(HistogramAssessment);
+        foreach (var name in new[] { nameof(Filters), nameof(ExportPolicies), nameof(PreviewQualityOptions), nameof(OverlayPositionOptions), nameof(FolderName), nameof(InspectorReviewLabel), nameof(InspectorToolsLabel), nameof(FilmstripLabel), nameof(FilmstripHint), nameof(CopyFolderLabel), nameof(OpenFolderLabel), nameof(ThumbnailSizeLabel), nameof(VisibleScopeSummary), nameof(SendVisibleLabel), nameof(ExportVisibleNamesLabel), nameof(CopyVisibleRatedLabel), nameof(PositionLabel), nameof(CurrentName), nameof(CatalogSummary) }) Notify(name);
     }
     private void RefreshCommands() { foreach (var command in new[] { ImportCommand, PreviousCommand, NextCommand, RevealCommand, CopyNamesCommand, ExportNamesCommand, ExportRatedCommand, OpenExportCommand, CancelCommand, ClearPreviewCacheCommand, ClearSessionCommand, WindowsCacheCleanupCommand, UndoCommand, ShowAllCommand }) command.Refresh(); }
     private void Guard(Action action) { try { action(); } catch (Exception e) { Status = e.Message; _dialogs.ShowError(e.Message); } }

@@ -31,7 +31,7 @@ Duyệt tay: copy RAW lớn, Skip/Rename/Replace, hủy giữa file và kiểm t
 ## Backlog sau ba nhánh đầu (cập nhật tiến độ ở các mục cuối)
 
 4. [Đã triển khai ở phase 4] VirtualizingWrapPanel + thumbnail slider: cần kiểm tra 3.000–8.000 ảnh, selection, keyboard navigation và DPI; không chỉ đổi panel rồi tuyên bố tối ưu.
-5. Semantic theme và resource localization: thay trọn bộ màu/chuỗi cả hai workspace, bỏ restart và traversal; kiểm tra EN/VI, contrast, control tạo trễ.
+5. [Localization hoàn thành ở phase 8] Chuỗi giao diện dùng binding và đổi EN/VI trực tiếp, không restart hoặc traversal. Semantic theme được tách sang phase riêng.
 6. Compare đã được thử nghiệm rồi loại bỏ theo kiểm duyệt. Navigator viewport, clipping overlay và pause/resume copy vẫn là các hướng cải tiến tiếp theo.
 7. Pause/resume copy và checkpoint: cần định nghĩa việc xác minh đích sau khi dừng, đổi nguồn, ngắt ổ đĩa, tránh copy trùng khi Rename.
 
@@ -80,7 +80,7 @@ Kiểm tra navigation, giới hạn snapshot theo search, reset zoom/rotation, r
 
 Nhánh hiện tại: phase 4 từ phase 3; phase 6 từ phase 4. Phase 5 đã hủy.
 Bản máy và phase 6 chứa tất cả thay đổi. Main chưa gộp.
-Các hạng mục còn lại: semantic theme / localization không restart, navigator viewport, clipping overlay và Pause/Resume copy có checkpoint.
+Các hạng mục còn lại: semantic theme, navigator viewport, clipping overlay và Pause/Resume copy có checkpoint.
 
 Kiểm chứng bản 1.23.0: 209 checks đạt ở Release, gồm cửa sổ preview modeless và tái sử dụng cửa sổ. Bộ screenshot nằm trong artifacts/screenshots.
 
@@ -121,3 +121,9 @@ Cập nhật hướng dẫn Review và TXT Filter bằng tiếng Anh/Việt theo
 Chuẩn hóa repository theo layout open source: `src/PhotoFileFilter.App`, `src/PhotoFileFilter.Core`, `tests/PhotoFileFilter.Tests`, `docs`, `examples` và `scripts`. App được chia theo feature Review, TXT Filter và Onboarding; mã dùng chung nằm trong Shared. Namespace khớp với đường dẫn và Core tiếp tục không phụ thuộc WPF.
 
 Bổ sung `docs/PROJECT-STRUCTURE.md`, `CONTRIBUTING.md`, metadata repository và thông tin bản quyền. Phase này không thay đổi workflow người dùng hoặc định dạng dữ liệu đã lưu.
+
+## Phase 8 — phase-8-localization
+
+Giao diện Review, TXT Filter và Quick Preview dùng `TranslateExtension` để mỗi chuỗi tĩnh theo dõi trạng thái ngôn ngữ. Khi chọn Tiếng Việt hoặc English trong Settings, app lưu lựa chọn và cập nhật ngay các control đang mở, danh sách chọn, thông báo động và tiêu đề cửa sổ; không restart và không duyệt visual/logical tree.
+
+`LanguageService` vẫn là catalog trung tâm để các chuỗi động dùng chung cùng bản dịch. View model cung cấp `RefreshLanguage` để phát lại thông báo cho những thuộc tính được tính theo trạng thái. Kiểm chứng bản 1.27.0: 228 checks Release, gồm chuyển VI → EN → VI trên cùng cửa sổ Review.

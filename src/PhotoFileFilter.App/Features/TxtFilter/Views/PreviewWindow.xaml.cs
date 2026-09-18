@@ -22,10 +22,6 @@ public partial class PreviewWindow : Window
     public PreviewWindow(PhotoFile file, IReadOnlyList<PhotoFile>? files = null)
     {
         InitializeComponent();
-        LanguageService.Apply(this);
-        PreviewHelp.Text = LanguageService.IsVietnamese ? "← / → đổi ảnh · Con lăn zoom · Kéo để di chuyển · R xoay · Esc đóng" : "← / → browse · Wheel to zoom · Drag to pan · R rotate · Esc close";
-        FitButton.Content = LanguageService.IsVietnamese ? "Vừa khung" : "Fit";
-        RotateButton.Content = LanguageService.IsVietnamese ? "Xoay 90°" : "Rotate 90°";
         Width = Math.Min(Width, SystemParameters.WorkArea.Width);
         Height = Math.Min(Height, SystemParameters.WorkArea.Height);
         SetFiles(file, files);

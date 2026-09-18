@@ -115,7 +115,7 @@ public sealed class MainViewModel : ObservableObject
     public bool UseSubfolder { get => NeedsSubfolder; set => Subfolder = value; }
     public string SubfolderName { get => _subfolderName; set { if (Set(ref _subfolderName, value)) OutputChanged(); } }
     public int Policy { get => _policy; set => Set(ref _policy, value); }
-    public string[] Policies { get; } = LanguageService.Texts("Rename — keep both", "Skip existing files", "Replace destination files");
+    public string[] Policies => LanguageService.Texts("Rename — keep both", "Skip existing files", "Replace destination files");
     public bool Busy { get => _busy; private set { Set(ref _busy, value); Notify(nameof(Idle)); RefreshCommands(); } }
     public bool Idle => !Busy;
     public bool Scanning { get => _scanning; private set => Set(ref _scanning, value); }
@@ -170,6 +170,12 @@ public sealed class MainViewModel : ObservableObject
         if (_updatingSelection) return;
         foreach (var name in new[] { nameof(CopyCount), nameof(CopyLabel), nameof(SelectionSummary), nameof(TotalSize), nameof(Readiness), nameof(ToggleIncludedLabel), nameof(FilterSummary), nameof(WorkflowHint) }) Notify(name);
         RefreshCommands();
+    }
+    public void RefreshLanguage()
+    {
+        Status = LanguageService.Text(Status);
+        Detail = LanguageService.Text(Detail);
+        foreach (var name in new[] { nameof(Policies), nameof(ToggleIncludedLabel), nameof(FilterSummary), nameof(TxtFileName), nameof(TxtFileHint), nameof(SourceHint), nameof(SelectionSummary), nameof(Readiness), nameof(FilesTab), nameof(MissingTab), nameof(IssuesTab), nameof(ResultSummary), nameof(CopyLabel), nameof(WorkflowHint), nameof(DestinationPreview) }) Notify(name);
     }
     private void InvalidateScan()
     {

@@ -13,7 +13,7 @@ QiQi Photo Review tập trung vào quy trình thực tế sau buổi chụp:
 3. Xuất danh sách tên ảnh đã chọn hoặc chuyển trực tiếp sang màn hình lọc TXT.
 4. Tìm các file RAW cùng tên và sao chép chúng vào một thư mục riêng để chỉnh sửa.
 
-Lần mở đầu tiên, ứng dụng cho phép chọn **Tiếng Việt** hoặc **English**. Có thể đổi lại trong **Cài đặt / Settings**; ứng dụng sẽ xác nhận, lưu phiên và tự khởi động lại để áp dụng đồng bộ.
+Lần mở đầu tiên, ứng dụng cho phép chọn **Tiếng Việt** hoặc **English**. Có thể đổi lại trong **Cài đặt / Settings**; toàn bộ giao diện đang mở cập nhật ngay và không cần khởi động lại.
 
 > Ứng dụng không chỉnh sửa, di chuyển hoặc xóa ảnh gốc. Rating, nhãn màu và góc xoay chỉ được lưu trong dữ liệu cục bộ của ứng dụng.
 
@@ -155,7 +155,7 @@ dotnet build PhotoFileFilter.sln -c Release
 dotnet run --project tests/PhotoFileFilter.Tests/PhotoFileFilter.Tests.csproj -c Release
 ```
 
-Bộ kiểm thử hiện gồm **226 kiểm tra**, bao phủ parser TXT, quét thư mục, bảo vệ ảnh gốc, chính sách trùng tên, tiến độ copy theo byte, session Review và TXT Filter, chuyển ngôn ngữ, hướng dẫn sử dụng, rating, năm nhãn màu, export, Quick Preview, virtualization, xoay, zoom, preview, histogram và bố cục WPF.
+Bộ kiểm thử hiện gồm **228 kiểm tra**, bao phủ parser TXT, quét thư mục, bảo vệ ảnh gốc, chính sách trùng tên, tiến độ copy theo byte, session Review và TXT Filter, chuyển ngôn ngữ trực tiếp, hướng dẫn sử dụng, rating, năm nhãn màu, export, Quick Preview, virtualization, xoay, zoom, preview, histogram và bố cục WPF.
 
 ## Đóng gói bản portable
 
@@ -225,6 +225,12 @@ publish.ps1                         Đóng gói portable Windows x64
 Xem [bản đồ kiến trúc và quy tắc đặt file](docs/PROJECT-STRUCTURE.md) trước khi thêm tính năng. Hướng dẫn gửi thay đổi nằm trong [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Phiên bản hiện tại
+
+**1.27.0 — chuyển ngôn ngữ trực tiếp**
+
+- Chuyển qua lại giữa Tiếng Việt và English ngay trong Settings mà không khởi động lại app.
+- Giao diện tĩnh dùng binding bản địa hóa, không còn duyệt và thay chữ trong cây WPF.
+- Đồng bộ lại nhãn động của Review, TXT Filter, Quick Preview và tiêu đề cửa sổ khi đổi ngôn ngữ.
 
 **1.26.0 — chuẩn hóa cấu trúc dự án open source**
 

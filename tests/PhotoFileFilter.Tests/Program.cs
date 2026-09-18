@@ -631,11 +631,16 @@ internal static class Program
         using var vietnameseVm = new ReviewViewModel(reviewDialogs, new ReviewCatalogService(Path.Combine(_root, "vi-catalog.json")), new ReviewSessionService(Path.Combine(_root, "vi-session.json")), new ReviewPreferencesService(Path.Combine(_root, "vi-preferences.json")));
         Check(vietnameseVm.Filters[0] == "Tất cả ảnh" && vietnameseVm.ExportPolicies[0].StartsWith("Tự đổi tên"), "Vietnamese view model options preserve stable filter indexes");
         var vietnameseReview = new ReviewWindow(vietnameseVm) { Width = 1360, Height = 820 };
-        LanguageService.Apply(vietnameseReview);
         Check(((FrameworkElement)vietnameseReview.FindName("ReviewEmptyState")).Visibility == Visibility.Visible && vietnameseReview.Title == $"QiQi Studio · Nhập & Review · v{typeof(ReviewWindow).Assembly.GetName().Version!.ToString(3)}", "Review presents a localized starting action and versioned title before a folder is imported");
         var vietnameseReviewWorkflow = (System.Windows.Controls.TextBlock)vietnameseReview.FindName("ReviewGuideWorkflow");
         var vietnameseReviewWorkflowText = string.Concat(vietnameseReviewWorkflow.Inlines.OfType<System.Windows.Documents.Run>().Select(run => run.Text));
         Check(vietnameseReviewWorkflowText.Contains("nhấn Space lần nữa") && ((System.Windows.Controls.TextBlock)vietnameseReview.FindName("ReviewGuideMouse")).Text.Contains("về Grid"), "Vietnamese Review guide translates the current Grid/Loupe workflow");
+        LanguageService.UseForCurrentProcess(LanguageService.English);
+        vietnameseVm.RefreshLanguage();
+        Check(((System.Windows.Controls.TextBlock)vietnameseReview.FindName("ReviewGuideMouse")).Text.Contains("return to Grid") && vietnameseVm.Filters[0] == "All Photos", "Open Review UI switches from Vietnamese to English without restart");
+        LanguageService.UseForCurrentProcess(LanguageService.Vietnamese);
+        vietnameseVm.RefreshLanguage();
+        Check(((System.Windows.Controls.TextBlock)vietnameseReview.FindName("ReviewGuideMouse")).Text.Contains("về Grid") && vietnameseVm.Filters[0] == "Tất cả ảnh", "Open Review UI switches back to Vietnamese without restart");
         await Render(vietnameseReview, Path.Combine(screenshot, "vietnamese-review.png"));
         vietnameseReview.ShowHelpPopup();
         await Render(vietnameseReview, Path.Combine(screenshot, "vietnamese-review-help.png"));
@@ -643,7 +648,6 @@ internal static class Program
         typeof(ReviewWindow).GetMethod("OnShowSettings", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.Invoke(vietnameseReview, [vietnameseReview, new RoutedEventArgs()]);
         await Render(vietnameseReview, Path.Combine(screenshot, "vietnamese-settings.png"));
         var vietnameseFilter = new MainWindow { DataContext = new MainViewModel(dialogs), Width = 1280, Height = 940 };
-        LanguageService.Apply(vietnameseFilter);
         var vietnameseFilterGuide = (System.Windows.Controls.TextBlock)((TxtFilterView)vietnameseFilter.Content).FindName("FilterGuideScanStep");
         var vietnameseFilterGuideText = string.Concat(vietnameseFilterGuide.Inlines.OfType<System.Windows.Documents.Run>().Select(run => run.Text));
         Check(vietnameseFilterGuideText.Contains("Xem nhanh"), "Vietnamese TXT guide translates Quick Preview instructions");
