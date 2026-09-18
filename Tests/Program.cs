@@ -100,6 +100,25 @@ internal static class Program
         using var cancel = new CancellationTokenSource();
         var cancelResult = await copier.CopyAsync(scan, new(Path.Combine(_root, "cancelled"), CollisionPolicy.Rename), new InlineProgress(_ => cancel.Cancel()), cancel.Token);
         Check(cancelResult.Cancelled && cancelResult.Copied == 0 && !Directory.EnumerateFiles(Path.Combine(_root, "cancelled")).Any(), "Cancellation cleans partial copy and preserves originals");
+        var largeCopyPath = Write("byte-progress/large.jpg");
+        File.WriteAllBytes(largeCopyPath, new byte[4 * 1024 * 1024]);
+        var largeScan = Scan(Path.GetDirectoryName(largeCopyPath)!, ["large"]);
+        var byteEvents = new List<OperationProgress>();
+        var byteOutput = Path.Combine(_root, "byte-output");
+        var byteCopy = await copier.CopyAsync(largeScan, new(byteOutput, CollisionPolicy.Rename), new InlineProgress(byteEvents.Add), default);
+        Check(byteCopy.Copied == 1 && byteEvents.Any(p => p.Completed == 0 && p.ProcessedBytes > 0 && p.ProcessedBytes < p.TotalBytes), "Copy reports byte progress before a large file completes");
+        Check(byteEvents[^1].ProcessedBytes == 4 * 1024 * 1024 && byteEvents[^1].TransferredBytes == 4 * 1024 * 1024 && byteEvents[^1].BytesPerSecond > 0 && byteEvents[^1].RemainingSeconds == 0, "Copy telemetry accounts for every byte with finite throughput and completed ETA");
+        Check(byteEvents.Zip(byteEvents.Skip(1)).All(pair => pair.First.ProcessedBytes <= pair.Second.ProcessedBytes), "Byte progress is monotonic during a successful transfer");
+        byteEvents.Clear();
+        await copier.CopyAsync(largeScan, new(byteOutput, CollisionPolicy.Skip), new InlineProgress(byteEvents.Add), default);
+        Check(byteEvents[^1].ProcessedBytes == byteEvents[^1].TotalBytes && byteEvents[^1].TransferredBytes == 0 && byteEvents[^1].RemainingSeconds == null, "Skipped files complete work without inventing transfer speed or ETA");
+        using (var midFileCancel = new CancellationTokenSource())
+        {
+            var interruptedOutput = Path.Combine(_root, "mid-file-cancel");
+            var interrupted = await copier.CopyAsync(largeScan, new(interruptedOutput, CollisionPolicy.Rename), new InlineProgress(p =>
+            { if (p.TransferredBytes > 0) midFileCancel.Cancel(); }), midFileCancel.Token);
+            Check(interrupted.Cancelled && interrupted.Copied == 0 && !Directory.EnumerateFiles(interruptedOutput).Any() && new FileInfo(largeCopyPath).Length == 4 * 1024 * 1024, "Cancelling inside a file removes its partial output and preserves the source");
+        }
         Throws(() => PathSafety.Destination(source, false, source, false, ""), "Output equal to source rejected");
         Throws(() => PathSafety.Destination(source, true, "", true, "../escape"), "Invalid output subfolder rejected");
         Throws(() => PathSafety.Destination(source, true, "", true, "CON"), "Windows reserved folder rejected");

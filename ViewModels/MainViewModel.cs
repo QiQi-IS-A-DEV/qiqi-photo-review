@@ -304,8 +304,11 @@ public sealed class MainViewModel : ObservableObject
             _lastDestination = destination;
             var progress = new Progress<OperationProgress>(p =>
             {
-                Progress = p.Total == 0 ? 0 : 100d * p.Completed / p.Total;
-                CurrentFile = p.CurrentFile; Detail = $"{p.Completed:N0} / {p.Total:N0} file · {Progress:N0}%";
+                Progress = p.TotalBytes > 0 ? 100d * p.ProcessedBytes / p.TotalBytes : p.Total == 0 ? 0 : 100d * p.Completed / p.Total;
+                var eta = p.RemainingSeconds is { } seconds && double.IsFinite(seconds)
+                    ? $" · {(LanguageService.IsVietnamese ? "Còn khoảng" : "ETA")} {Math.Ceiling(seconds / 60):N0} min" : "";
+                CurrentFile = p.CurrentFile;
+                Detail = $"{p.Completed:N0} / {p.Total:N0} file · {Progress:N0}% · {p.BytesPerSecond / 1048576d:N1} MiB/s{eta}";
             });
             var options = new CopyOptions(destination, (CollisionPolicy)Policy, included);
             var token = _cancellation!.Token;

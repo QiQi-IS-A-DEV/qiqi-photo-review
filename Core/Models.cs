@@ -16,6 +16,11 @@ public record ScanResult(string SourceFolder, IReadOnlyList<string> RequestedNam
     IReadOnlyList<string> Missing, IReadOnlyList<string> Warnings, int ExaminedCount);
 public enum CollisionPolicy { Rename, Skip, Replace }
 public record CopyOptions(string Destination, CollisionPolicy Policy, IReadOnlySet<string>? IncludedPaths = null);
-public record OperationProgress(int Completed, int Total, string CurrentFile);
+public record OperationProgress(int Completed, int Total, string CurrentFile,
+    long ProcessedBytes = 0, long TotalBytes = 0, long TransferredBytes = 0, double ElapsedSeconds = 0)
+{
+    public double BytesPerSecond => ElapsedSeconds > 0 ? TransferredBytes / ElapsedSeconds : 0;
+    public double? RemainingSeconds => BytesPerSecond > 0 ? Math.Max(0, TotalBytes - ProcessedBytes) / BytesPerSecond : null;
+}
 public record CopyIssue(string File, string Reason);
 public record CopyResult(int Copied, int Skipped, IReadOnlyList<CopyIssue> Errors, bool Cancelled);

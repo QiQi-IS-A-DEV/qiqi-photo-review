@@ -208,7 +208,7 @@
                     <TextBlock Text="{Binding Status}" FontWeight="SemiBold" FontSize="12"/>
                         <TextBlock Text="{Binding Detail}" ToolTip="{Binding Detail}" Style="{StaticResource Caption}" FontSize="11" Margin="0,3,0,0" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" MaxWidth="680"/>
                         <TextBlock Text="{Binding DestinationPreview}" ToolTip="{Binding DestinationPreview}" Style="{StaticResource Caption}" FontSize="10" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" Margin="0,3,0,0" MaxWidth="680"/>
-                    <ProgressBar Value="{Binding Progress, Mode=OneWay}" IsIndeterminate="{Binding Scanning}" Maximum="100" Height="3" Foreground="{DynamicResource C127C74}" Background="{DynamicResource CEDF3EF}" BorderThickness="0" Margin="0,7,0,0"/>
+                    <ProgressBar Value="{Binding Progress, Mode=OneWay}" IsIndeterminate="{Binding Scanning}" Maximum="100" Height="8" Foreground="{DynamicResource C127C74}" Background="{DynamicResource CEDF3EF}" BorderThickness="0" Margin="0,7,0,0"/>
                     <TextBlock Text="{Binding CurrentFile}" FontSize="10" Foreground="{DynamicResource C74838B}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" Visibility="{Binding Busy, Converter={StaticResource BoolVisibility}}"/>
                 </StackPanel>
                 <StackPanel Grid.Column="1">

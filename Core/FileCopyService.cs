@@ -16,13 +16,26 @@ public sealed class FileCopyService
         var completed = 0;
         // Keep the full scan as the source protection set even when only a subset is copied.
         var batch = scan.Files.Where(f => options.IncludedPaths == null || options.IncludedPaths.Contains(f.FullPath)).ToArray();
+        var totalBytes = batch.Sum(photo => photo.Size);
+        long settledBytes = 0, transferredBytes = 0;
+        var clock = System.Diagnostics.Stopwatch.StartNew();
+        var buffer = new byte[1024 * 1024];
+        var lastReport = TimeSpan.Zero;
         foreach (var photo in batch)
         {
             if (token.IsCancellationRequested) return new(copied, skipped, errors, true);
             string? temporary = null;
+            long currentBytes = 0;
+            void Report(bool force = false)
+            {
+                if (!force && clock.Elapsed - lastReport < TimeSpan.FromMilliseconds(100)) return;
+                lastReport = clock.Elapsed;
+                progress?.Report(new(completed, batch.Length, photo.RelativePath,
+                    Math.Min(totalBytes, settledBytes + currentBytes), totalBytes, transferredBytes, clock.Elapsed.TotalSeconds));
+            }
             try
             {
-                progress?.Report(new(completed, batch.Length, photo.RelativePath));
+                Report(true);
                 PathSafety.RejectLinkedAncestors(destination);
                 PathSafety.RejectLinkedAncestors(Path.GetDirectoryName(photo.FullPath)!);
                 var info = new FileInfo(photo.FullPath);
@@ -38,7 +51,13 @@ public sealed class FileCopyService
                 await using (var input = new FileStream(photo.FullPath, FileMode.Open, FileAccess.Read, FileShare.Read, 1024 * 1024, true))
                 await using (var output = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None, 1024 * 1024, true))
                 {
-                    await input.CopyToAsync(output, 1024 * 1024, token);
+                    int read;
+                    while ((read = await input.ReadAsync(buffer.AsMemory(), token)) > 0)
+                    {
+                        await output.WriteAsync(buffer.AsMemory(0, read), token);
+                        currentBytes += read; transferredBytes += read;
+                        Report(currentBytes == read);
+                    }
                     await output.FlushAsync(token);
                 }
                 token.ThrowIfCancellationRequested();
@@ -72,8 +91,11 @@ public sealed class FileCopyService
                     try { File.Delete(temporary); }
                     catch (Exception e) when (e is IOException or UnauthorizedAccessException) { errors.Add(new(temporary, $"Could not remove the temporary file: {e.Message}")); }
                 }
-                completed++;
-                progress?.Report(new(completed, batch.Length, photo.RelativePath));
+                if (!token.IsCancellationRequested)
+                {
+                    completed++; settledBytes += photo.Size; currentBytes = 0;
+                }
+                Report(true);
             }
         }
         return new(copied, skipped, errors, false);

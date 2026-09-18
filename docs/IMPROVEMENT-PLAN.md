@@ -22,7 +22,10 @@ Duyệt tay: qua lại ảnh lớn, đổi chất lượng, sửa/xóa JPG đồ
 ## Phase 3 — codex/phase-3-copy-feedback
 
 Tiến độ theo byte, tốc độ truyền và thời gian còn lại; giữ copy tuần tự và commit file an toàn.
-Cải thiện một số thao tác UI nhỏ, kiểm tra lại toàn bộ workflow và build Release.
+Thanh tiến độ 8px, bỏ nút đóng app cạnh Settings, chọn ngôn ngữ bằng 1/V/Enter hoặc 2/E.
+Kiểm chứng: 178 checks ở Release; build 0 warnings / 0 errors; render kiểm tra TXT nhúng, Review và chọn ngôn ngữ.
+Tốc độ là trung bình byte đã ghi trong phiên (MiB/s); ETA là ước tính theo tốc độ đó. Skip/error được tính là công việc đã xử lý, không tính thành byte truyền thành công. Tóm tắt cuối vẫn tách copied/skipped/errors.
+Chưa có Pause/Resume; không thay đổi thuật toán collision hay tự copy song song.
 Duyệt tay: copy RAW lớn, Skip/Rename/Replace, hủy giữa file và kiểm tra không còn file tạm.
 
 ## Các phase tiếp theo — chưa triển khai trong ba nhánh đầu
@@ -39,3 +42,16 @@ Các điểm số và dự đoán freeze/OOM chưa phải benchmark đã đo. Kh
 Copy song song không mặc nhiên nhanh hơn trên HDD/USB; ưu tiên đo byte/s trước khi đổi concurrency.
 Baseline đã có source protection, temporary-file commit, hủy có cleanup, EXIF orientation, lựa chọn Original và test race khi điều hướng preview.
 Đóng hộp chọn ngôn ngữ lần đầu là hủy khởi chạy; không cần ép thêm một hộp xác nhận khi chưa có công việc chưa lưu.
+
+## Chạy và kiểm duyệt
+
+```powershell
+git switch codex/phase-3-copy-feedback
+dotnet run --project PhotoFileFilter.csproj -c Release
+# Bộ kiểm tra dùng fixture tự tạo, không cần ảnh thật:
+dotnet run --project Tests/PhotoFileFilter.Tests.csproj -c Release
+```
+
+Phase 1 so với main; phase 2 so với phase 1; phase 3 so với phase 2.
+Kiểm tra ảnh RAW thật, codec máy bạn, ổ USB và thư mục lớn vẫn cần bạn duyệt trước khi gộp.
+Không có benchmark thực tế cho 30–80 GB hoặc 8.000 ảnh trong đợt này.
