@@ -376,18 +376,18 @@ internal static class Program
         Directory.CreateDirectory(screenshot);
         var window = new MainWindow { DataContext = vm, Width = 1240, Height = 1080 };
         Check(window.Icon != null && Application.GetResourceStream(new Uri("pack://application:,,,/PhotoFileFilter;component/Assets/qiqistudio_nobackground.png")) != null, "QiQi Studio icon and original logo are embedded resources");
-        typeof(MainWindow).GetMethod("ShowHelp", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.Invoke(window, null);
-        Check(((FrameworkElement)window.FindName("FilterHelpOverlay")).Visibility == Visibility.Visible, "TXT Filter has its own in-window workflow guide");
+        ((TxtFilterView)window.Content).ShowHelpPopup();
+        Check(((FrameworkElement)((TxtFilterView)window.Content).FindName("FilterHelpOverlay")).Visibility == Visibility.Visible, "TXT Filter has its own in-window workflow guide");
         await Render(window, Path.Combine(screenshot, "filter-help.png"));
-        typeof(MainWindow).GetMethod("OnCloseFilterHelp", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.Invoke(window, [window, new RoutedEventArgs()]);
+        ((TxtFilterView)window.Content).HideHelpPopup();
         await Render(window, Path.Combine(screenshot, "results.png"));
         window.Width = 1280; window.Height = 940;
         await Render(window, Path.Combine(screenshot, "default.png"));
         vm.DarkMode = true;
         await Render(window, Path.Combine(screenshot, "dark-results.png"));
-        Check(((SolidColorBrush)((System.Windows.Controls.DataGrid)window.FindName("ResultsGrid")).RowBackground).Color == ((SolidColorBrush)Application.Current.Resources["Surface"]).Color, "Normal result rows use the dark surface as well as alternating rows");
+        Check(((SolidColorBrush)((System.Windows.Controls.DataGrid)((TxtFilterView)window.Content).FindName("ResultsGrid")).RowBackground).Color == ((SolidColorBrush)Application.Current.Resources["Surface"]).Color, "Normal result rows use the dark surface as well as alternating rows");
         vm.DarkMode = false;
-        ((FrameworkElement)window.FindName("OutputSettings")).BringIntoView();
+        ((FrameworkElement)((TxtFilterView)window.Content).FindName("OutputSettings")).BringIntoView();
         await Render(window, Path.Combine(screenshot, "output-settings.png"));
         vm.Comma = false;
         Check(vm.MatchedCount == 0 && !vm.CopyCommand.CanExecute(null), "Changing scan settings invalidates previous results");
@@ -439,7 +439,8 @@ internal static class Program
         var embeddedVm = (MainViewModel)embeddedFilter.DataContext;
         Check(((FrameworkElement)reviewWindow.FindName("FilterHost")).Visibility == Visibility.Visible && ((FrameworkElement)reviewWindow.FindName("ReviewScreen")).Visibility == Visibility.Collapsed && reviewWindow.Title == $"QiQi Studio · Filter Photos by TXT List · v{typeof(ReviewWindow).Assembly.GetName().Version!.ToString(3)}", "TXT filter switches inside the same application window and retains the build version in its title");
         Check(File.Exists(embeddedVm.TxtPath) && embeddedVm.Extensions.Where(option => option.Selected).All(option => option.Name is "ARW" or "CR2" or "CR3" or "NEF" or "RAF" or "ORF" or "RW2" or "DNG"), "Sending review names fills the TXT input and selects the RAW preset");
-        var embeddedFilterWindow = embeddedFilter.Tag as MainWindow ?? throw new Exception("Embedded TXT Filter owner was not retained.");
+        var embeddedFilterWindow = embeddedFilter as TxtFilterView ?? throw new Exception("TXT Filter must be a hosted UserControl.");
+        Check(embeddedFilterWindow.InputBindings.Count == 3, "Hosted filter owns its scan, browse and cancel input bindings");
         embeddedFilterWindow.ShowHelpPopup();
         Check(((FrameworkElement)embeddedFilterWindow.FindName("FilterHelpOverlay")).Visibility == Visibility.Visible, "TXT Filter guide works inside the Review window");
         await Render(reviewWindow, Path.Combine(screenshot, "filter-help-embedded.png"));
@@ -463,7 +464,7 @@ internal static class Program
         var vietnameseFilter = new MainWindow { DataContext = new MainViewModel(dialogs), Width = 1280, Height = 940 };
         LanguageService.Apply(vietnameseFilter);
         await Render(vietnameseFilter, Path.Combine(screenshot, "vietnamese-filter.png"));
-        vietnameseFilter.ShowHelpPopup();
+        ((TxtFilterView)vietnameseFilter.Content).ShowHelpPopup();
         await Render(vietnameseFilter, Path.Combine(screenshot, "vietnamese-filter-help.png"));
         var languageChooser = new LanguageWindow { Width = 560, Height = 390 };
         await Render(languageChooser, Path.Combine(screenshot, "language-first-run.png"));
@@ -486,7 +487,7 @@ internal static class Program
         content.UpdateLayout();
         if (window is MainWindow)
         {
-        var copyAction = (System.Windows.Controls.Button)window.FindName("CopyAction");
+        var copyAction = (System.Windows.Controls.Button)((TxtFilterView)content).FindName("CopyAction");
         var point = copyAction.TransformToAncestor(content).Transform(new Point());
         Check(point.Y >= 0 && point.Y + copyAction.ActualHeight <= content.ActualHeight && point.X + copyAction.ActualWidth <= content.ActualWidth, "Copy button stays inside viewport: " + Path.GetFileName(path));
         var ancestor = VisualTreeHelper.GetParent(copyAction);

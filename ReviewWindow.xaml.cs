@@ -12,7 +12,7 @@ public partial class ReviewWindow : Window
 {
     private readonly ReviewViewModel _viewModel;
     private readonly string? _initialFolder;
-    private MainWindow? _filterWindow;
+    private TxtFilterView? _filterView;
     private Point? _panStart;
     private Point _panOrigin;
     private bool _isPanning;
@@ -46,7 +46,7 @@ public partial class ReviewWindow : Window
         Closed += (_, _) =>
         {
             _viewModel.Dispose();
-            if (_filterWindow?.DataContext is ViewModels.MainViewModel filter) filter.SaveSettings();
+            _filterView?.SaveSettings();
         };
     }
 
@@ -75,7 +75,7 @@ public partial class ReviewWindow : Window
         }
         if (FilterHost.Visibility == Visibility.Visible && (e.Key == Key.F1 || MatchesShortcut(e, _viewModel.HelpShortcut)))
         {
-            _filterWindow?.ShowHelpPopup();
+            _filterView?.ShowHelpPopup();
             e.Handled = true; return;
         }
         if (MatchesShortcut(e, _viewModel.HelpShortcut)) { ShowHelpPopup(); e.Handled = true; return; }
@@ -83,12 +83,7 @@ public partial class ReviewWindow : Window
         { ToggleZenMode(); e.Handled = true; return; }
         if (FilterHost.Visibility == Visibility.Visible)
         {
-            if (_filterWindow?.DataContext is not ViewModels.MainViewModel filter) return;
-            if (e.Key == Key.F5 && filter.ScanCommand.CanExecute(null)) filter.ScanCommand.Execute(null);
-            else if (e.Key == Key.Escape && filter.CancelCommand.CanExecute(null)) filter.CancelCommand.Execute(null);
-            else if (e.Key == Key.O && Keyboard.Modifiers.HasFlag(ModifierKeys.Control) && filter.BrowseTxtCommand.CanExecute(null)) filter.BrowseTxtCommand.Execute(null);
-            else return;
-            e.Handled = true;
+            // Let the focused workspace handle its own routed keyboard commands.
             return;
         }
         if (e.OriginalSource is TextBox or ComboBox) return;
@@ -215,24 +210,26 @@ public partial class ReviewWindow : Window
     }
     private void ShowFilterScreen(string? textListPath = null)
     {
-        if (_filterWindow == null)
+        if (_filterView == null)
         {
-            _filterWindow = new MainWindow();
-            _filterWindow.ReviewRequested += (_, _) => ShowReviewScreen();
-            FilterHost.Content = _filterWindow.TakeContentForEmbedding();
+            _filterView = new TxtFilterView();
+            _filterView.ConfigureForReview();
+            _filterView.ReviewRequested += (_, _) => ShowReviewScreen();
+            FilterHost.Content = _filterView;
         }
-        if (_filterWindow.DataContext is ViewModels.MainViewModel filter && string.IsNullOrWhiteSpace(filter.SourceFolder) && Directory.Exists(_viewModel.Folder))
+        if (_filterView.DataContext is ViewModels.MainViewModel filter && string.IsNullOrWhiteSpace(filter.SourceFolder) && Directory.Exists(_viewModel.Folder))
             filter.SourceFolder = _viewModel.Folder;
-        if (_filterWindow.DataContext is ViewModels.MainViewModel targetFilter && !string.IsNullOrWhiteSpace(textListPath))
+        if (_filterView.DataContext is ViewModels.MainViewModel targetFilter && !string.IsNullOrWhiteSpace(textListPath))
         {
             targetFilter.TxtPath = textListPath;
             if (targetFilter.SelectRawCommand.CanExecute(null)) targetFilter.SelectRawCommand.Execute(null);
         }
-        if (_filterWindow.DataContext is ViewModels.MainViewModel filterTheme) filterTheme.DarkMode = true;
+        if (_filterView.DataContext is ViewModels.MainViewModel filterTheme) filterTheme.DarkMode = true;
         ReviewScreen.Visibility = Visibility.Collapsed;
         FilterHost.Visibility = Visibility.Visible;
         Title = AppInfo.FilterTitle;
-        FilterHost.Focus();
+        _filterView.Focusable = true;
+        _filterView.Focus();
     }
     private void ShowReviewScreen()
     {
@@ -277,7 +274,7 @@ public partial class ReviewWindow : Window
         if (MessageBox.Show(this, message, title, MessageBoxButton.OKCancel, MessageBoxImage.Question, MessageBoxResult.Cancel) == MessageBoxResult.OK)
         {
             _viewModel.SaveSessionNow();
-            if (_filterWindow?.DataContext is ViewModels.MainViewModel filter) filter.SaveSettings();
+            _filterView?.SaveSettings();
             LanguageService.Set(language); LanguageService.Restart();
         }
         else
@@ -324,7 +321,7 @@ public partial class ReviewWindow : Window
     }
     protected override void OnClosing(CancelEventArgs e)
     {
-        var filterBusy = _filterWindow?.DataContext is ViewModels.MainViewModel { Busy: true };
+        var filterBusy = _filterView?.DataContext is ViewModels.MainViewModel { Busy: true };
         if (_viewModel.Busy || filterBusy)
         {
             e.Cancel = true;
