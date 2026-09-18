@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "phase-*"]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Restore
+        run: dotnet restore PhotoFileFilter.sln
+      - name: Build Release
+        run: dotnet build PhotoFileFilter.sln -c Release --no-restore
+      - name: Run workflow and WPF regression checks
+        run: dotnet run --project tests/PhotoFileFilter.Tests/PhotoFileFilter.Tests.csproj -c Release --no-build
+      - name: Upload rendered UI when validation fails
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-regression-screenshots
+          path: artifacts/screenshots
+          if-no-files-found: ignore
+          retention-days: 7

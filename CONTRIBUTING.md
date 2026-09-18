@@ -10,8 +10,7 @@ Cảm ơn bạn đã quan tâm đến dự án. Hãy đọc [cấu trúc và quy
 ```powershell
 git clone https://github.com/QiQi-IS-A-DEV/qiqi-photo-review.git
 cd qiqi-photo-review
-dotnet build PhotoFileFilter.sln -c Release
-dotnet run --project tests/PhotoFileFilter.Tests/PhotoFileFilter.Tests.csproj -c Release
+./scripts/Verify.ps1
 ```
 
 Chạy ứng dụng bằng:
@@ -40,14 +39,13 @@ Không đưa code của một feature vào `Shared` chỉ để tránh tạo nam
 
 ## Trước khi gửi pull request
 
-```powershell
-dotnet build PhotoFileFilter.sln -c Release
-dotnet run --project tests/PhotoFileFilter.Tests/PhotoFileFilter.Tests.csproj -c Release
-```
+Chạy `./scripts/Verify.ps1`. Script dùng cùng chuỗi restore, Release build và WPF regression checks như GitHub Actions.
 
 Pull request cần mô tả vấn đề, hành vi sau thay đổi và cách đã kiểm chứng. Nếu đổi cấu trúc, phím tắt hoặc workflow người dùng, hãy cập nhật README và tài liệu liên quan.
 
 Không commit `artifacts`, `bin`, `obj`, dữ liệu ảnh cá nhân hoặc đường dẫn máy cục bộ.
+
+Xem [release checklist](docs/RELEASE-CHECKLIST.md) khi chuẩn bị bản phát hành. Lỗ hổng có nguy cơ ảnh hưởng file người dùng phải được báo theo [SECURITY.md](SECURITY.md), không đăng công khai trước khi có bản sửa.
 
 ## Bản quyền và giấy phép
 

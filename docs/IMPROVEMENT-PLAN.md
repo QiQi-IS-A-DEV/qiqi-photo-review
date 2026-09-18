@@ -139,3 +139,9 @@ Khi tiếp tục, `FileCopyService` kiểm tra lại nguồn trước từng fil
 Đổi toàn bộ resource dùng chung từ tên mã hex sang token mô tả vai trò như `AppBackground`, `SurfaceSubtle`, `FieldBorder`, `SelectionBackground`, `SuccessText` và `WarningText`. `ThemeService` chứa palette tối tường minh theo cùng bộ token; palette sáng lấy trực tiếp từ `ThemeColors.xaml`.
 
 Các màu riêng của workspace Review được gom thành resource có tên ngay trong feature, giảm số màu lặp ở layout. Kiểm chứng bản 1.29.0: 233 checks Release và render lại các viewport sáng/tối hiện có.
+
+## Phase 12 — phase-12-open-source-quality
+
+Phase 11 được bỏ qua theo quyết định kiểm duyệt. Phase 12 bổ sung GitHub Actions chạy trên Windows, `scripts/Verify.ps1`, SDK policy, deterministic build, warnings-as-errors, EditorConfig, Dependabot, pull-request template, security policy và release checklist.
+
+CI chạy đúng 233 checks của local Release build và lưu screenshot khi lỗi WPF. Tài liệu kiểm thử giải thích phạm vi fixture và vị trí artifact để contributor không cần dùng ảnh cá nhân.

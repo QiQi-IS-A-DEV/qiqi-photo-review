@@ -152,11 +152,12 @@ dotnet run --project src/PhotoFileFilter.App/PhotoFileFilter.App.csproj
 ## Build và kiểm thử
 
 ```powershell
-dotnet build PhotoFileFilter.sln -c Release
-dotnet run --project tests/PhotoFileFilter.Tests/PhotoFileFilter.Tests.csproj -c Release
+./scripts/Verify.ps1
 ```
 
 Bộ kiểm thử hiện gồm **233 kiểm tra**, bao phủ parser TXT, quét thư mục, bảo vệ ảnh gốc, chính sách trùng tên, tạm dừng/tiếp tục và tiến độ copy theo byte, session Review và TXT Filter, chuyển ngôn ngữ trực tiếp, semantic theme, hướng dẫn sử dụng, rating, năm nhãn màu, export, Quick Preview, virtualization, xoay, zoom, preview, histogram và bố cục WPF.
+
+GitHub Actions chạy cùng quy trình trên Windows cho mọi pull request vào `main` và các nhánh `phase-*`. Nếu kiểm tra giao diện thất bại, ảnh render được tải lên dưới dạng CI artifact để chẩn đoán.
 
 ## Đóng gói bản portable
 
@@ -226,6 +227,12 @@ publish.ps1                         Đóng gói portable Windows x64
 Xem [bản đồ kiến trúc và quy tắc đặt file](docs/PROJECT-STRUCTURE.md) trước khi thêm tính năng. Hướng dẫn gửi thay đổi nằm trong [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Phiên bản hiện tại
+
+**1.30.0 — open-source quality**
+
+- Bổ sung GitHub Actions cho restore, Release build và toàn bộ WPF regression suite trên Windows.
+- Thêm `Verify.ps1`, cấu hình SDK, deterministic build, warnings-as-errors và quy ước `.editorconfig`.
+- Bổ sung pull-request template, Dependabot, chính sách bảo mật và release checklist.
 
 **1.29.0 — semantic theme**
 

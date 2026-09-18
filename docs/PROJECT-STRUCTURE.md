@@ -49,6 +49,7 @@ flowchart LR
 | `examples` | File đầu vào mẫu, không chứa dữ liệu người dùng thật |
 | `scripts` | Công cụ hỗ trợ phát triển; không chứa logic runtime |
 | `docs` | Kiến trúc, kế hoạch và quyết định bảo trì |
+| `.github` | CI, cập nhật dependency và mẫu pull request |
 | `LICENSE` | Toàn văn Apache License 2.0 áp dụng cho mã nguồn |
 | `NOTICE` | Thông tin bản quyền và ghi nhận phải đi cùng bản phân phối |
 
@@ -68,3 +69,5 @@ flowchart LR
 Tạo `Features/<FeatureName>` và chỉ thêm các thư mục con cần dùng, chẳng hạn `Views`, `ViewModels`, `Models` và `Services`. Nếu feature cần thuật toán không phụ thuộc WPF và có thể tái sử dụng, đặt thuật toán đó trong một khu vực nghiệp vụ phù hợp của Core.
 
 Mỗi thay đổi cấu trúc phải cập nhật tài liệu này, README và project reference liên quan trong cùng pull request.
+
+Lệnh chuẩn để kiểm tra repository là `./scripts/Verify.ps1`. GitHub Actions phải gọi cùng các bước để kết quả local và CI không khác nhau về cấu hình build.
