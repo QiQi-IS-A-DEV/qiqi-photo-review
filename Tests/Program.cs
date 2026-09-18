@@ -551,6 +551,11 @@ internal static class Program
         reviewVm.ShowFilmstrip = true; reviewVm.FilmstripHeight = 210;
         await Render(reviewWindow, Path.Combine(screenshot, "review-tall-filmstrip.png"));
         reviewVm.FilmstripHeight = 124;
+        reviewWindow.Width = 1080; reviewWindow.Height = 680;
+        await Render(reviewWindow, Path.Combine(screenshot, "review-compact-inspector.png"));
+        inspectorTabs.SelectedIndex = 1;
+        await Render(reviewWindow, Path.Combine(screenshot, "review-compact-deliver.png"));
+        inspectorTabs.SelectedIndex = 0; reviewWindow.Width = 1360; reviewWindow.Height = 820;
 
         reviewWindow.ShowHelpPopup();
         Check(((FrameworkElement)reviewWindow.FindName("HelpOverlay")).Visibility == Visibility.Visible, "F1 help is available as an in-window popup");

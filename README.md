@@ -194,6 +194,15 @@ publish.ps1            Script đóng gói portable cho Windows x64
 
 ## Phiên bản hiện tại
 
+**1.24.0 — Inspector và điều khiển Review**
+
+- Inspector chia Đánh giá / Bàn giao / Công cụ để truy cập nhanh từng nhóm thao tác.
+- Filmstrip: Ctrl+F hoặc checkbox góc dưới phải để ẩn/hiện; kéo mép trên để đổi chiều cao, tự lưu.
+- Nhãn tím: T, nút tím hoặc menu ngữ cảnh; hỗ trợ lọc, lưu catalog và undo.
+- Rê chuột trên sao để xem trước rating trước khi click.
+- Photo Source có nút chép đường dẫn và mở thư mục.
+- Space vẫn chuyển Grid ↔ Loupe; không có Compare. Quick Preview TXT được giữ nguyên.
+
 **1.23.1 — bỏ Compare, khôi phục Space ở Review**
 
 - Loại bỏ nút, phím C và chế độ So sánh theo yêu cầu kiểm duyệt.

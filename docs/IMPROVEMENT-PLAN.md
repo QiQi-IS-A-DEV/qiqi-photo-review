@@ -85,7 +85,7 @@ Kiểm tra navigation, giới hạn snapshot theo search, reset zoom/rotation, r
 
 Nhánh hiện tại: phase 4 từ phase 3; phase 6 từ phase 4. Phase 5 đã hủy.
 Bản máy và phase 6 chứa tất cả thay đổi. Main chưa gộp.
-Các hạng mục còn lại: semantic theme / localization không restart, inspector tabs, navigator viewport, clipping overlay, filmstrip resize và Pause/Resume copy có checkpoint.
+Các hạng mục còn lại: semantic theme / localization không restart, navigator viewport, clipping overlay và Pause/Resume copy có checkpoint.
 
 Kiểm chứng bản 1.23.0: 209 checks đạt ở Release, gồm cửa sổ preview modeless và tái sử dụng cửa sổ. Bộ screenshot nằm trong artifacts/screenshots.
 
@@ -106,3 +106,9 @@ Nhãn tím dùng T hoặc nút tím/menu ngữ cảnh, có bộ lọc và undo, 
 Hover sao xem trước số sao, chỉ click mới lưu rating. Photo Source có chép đường dẫn / mở thư mục, vô hiệu khi chưa có thư mục nguồn đơn.
 Kiểm chứng trên phase 4: 205 checks gồm persistence, undo/filter màu tím, hover không ghi rating, bố cục từng tab và ẩn/phóng filmstrip.
 Thay đổi tiếp tục trên nhánh nghiệp vụ có sẵn, không tạo nhánh sửa lẻ.
+
+## Bản 1.24.0
+
+Tích hợp cập nhật Review từ phase-4-virtualized-grid vào phase-6-quick-preview. Giữ Space Grid/Loupe và không đưa Compare trở lại. Các việc lớn còn lại: semantic theme, localization không restart, navigator viewport, clipping overlay và pause/resume copy.
+
+Kiểm chứng bản tích hợp 1.24.0: 221 checks đạt ở Release; render Inspector, Bàn giao, Công cụ và filmstrip ở 1360×820, 1080×680; Space Grid/Loupe và Quick Preview vẫn đạt kiểm tra hồi quy.
