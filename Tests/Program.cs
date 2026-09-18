@@ -410,7 +410,7 @@ internal static class Program
             preferencesVm.HelpShortcut = "Ctrl+H"; preferencesVm.ZenShortcut = "F"; preferencesVm.ResetZoomShortcut = "Ctrl+0";
         }
         using (var restoredPreferences = new ReviewViewModel(reviewDialogs, new ReviewCatalogService(Path.Combine(_root, "preferences-catalog-2.json")), new ReviewSessionService(Path.Combine(_root, "preferences-session-2.json")), new ReviewPreferencesService(preferencesPath)))
-            Check(restoredPreferences.PreviewMaxEdge == 2400 && restoredPreferences.ZoomStepPercent == 50 && restoredPreferences.ClickZoomPercent == 300 && restoredPreferences.OverlayPosition == 1 && restoredPreferences.HelpShortcut == "Ctrl+H" && restoredPreferences.ZenShortcut == "F" && restoredPreferences.ResetZoomShortcut == "Ctrl+0", "Custom review display and shortcut preferences persist"); 
+            Check(restoredPreferences.PreviewMaxEdge == 2400 && restoredPreferences.ZoomStepPercent == 50 && restoredPreferences.ClickZoomPercent == 300 && restoredPreferences.OverlayPosition == 1 && restoredPreferences.HelpShortcut == "Ctrl+H" && restoredPreferences.ZenShortcut == "F" && restoredPreferences.ResetZoomShortcut == "Ctrl+0", "Custom review display and shortcut preferences persist");
         using (var displayPreferences = new ReviewViewModel(reviewDialogs, new ReviewCatalogService(Path.Combine(_root, "display-catalog.json")), new ReviewSessionService(Path.Combine(_root, "display-session.json")), new ReviewPreferencesService(preferencesPath)))
         {
             Check(!displayPreferences.ShowFilmstrip && displayPreferences.FilmstripHeight == 200 && displayPreferences.FilmstripRowHeight == 0, "Filmstrip height and visibility survive preferences reload");
@@ -509,10 +509,13 @@ internal static class Program
         reviewVm.ThumbnailSize = 166;
         await Render(reviewWindow, Path.Combine(screenshot, "review-grid.png"));
         var inspectorTabs = (System.Windows.Controls.TabControl)reviewWindow.FindName("InspectorTabs");
-        Check(inspectorTabs.Items.Count == 3, "Inspector organizes review, delivery and tools in three tabs");
-        inspectorTabs.SelectedIndex = 1;
+        var reviewSections = (System.Windows.Controls.StackPanel)reviewWindow.FindName("ReviewInspectorSections");
+        Check(inspectorTabs.Items.Count == 2 && reviewSections.Children.Count == 4 && ((System.Windows.Controls.Expander)reviewSections.Children[0]).Header.ToString() == "Histogram", "Inspector combines Review and Deliver with Histogram first, alongside a separate Tools tab");
+        var inspectorScroll = (System.Windows.Controls.ScrollViewer)reviewWindow.FindName("ReviewInspectorScroll");
+        inspectorScroll.ScrollToEnd();
         await Render(reviewWindow, Path.Combine(screenshot, "review-deliver-tab.png"));
-        inspectorTabs.SelectedIndex = 2;
+        inspectorScroll.ScrollToTop();
+        inspectorTabs.SelectedIndex = 1;
         await Render(reviewWindow, Path.Combine(screenshot, "review-tools-tab.png"));
         inspectorTabs.SelectedIndex = 0;
         reviewVm.ShowFilmstrip = false;

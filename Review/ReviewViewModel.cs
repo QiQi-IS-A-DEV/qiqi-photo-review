@@ -173,8 +173,7 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     public void SaveFilmstripSize() => SavePreferences();
     public int DisplayRating => _hoverRating ?? CurrentPhoto?.Rating ?? 0;
     public void PreviewRating(int? rating) { _hoverRating = rating.HasValue ? Math.Clamp(rating.Value, 0, 5) : null; Notify(nameof(DisplayRating)); }
-    public string InspectorReviewLabel => LanguageService.IsVietnamese ? "Đánh giá" : "Review";
-    public string InspectorDeliverLabel => LanguageService.IsVietnamese ? "Bàn giao" : "Deliver";
+    public string InspectorReviewLabel => LanguageService.IsVietnamese ? "Đánh giá + Bàn giao" : "Review + Deliver";
     public string InspectorToolsLabel => LanguageService.IsVietnamese ? "Công cụ" : "Tools";
     public string FilmstripLabel => LanguageService.IsVietnamese ? "Dải ảnh" : "Filmstrip";
     public string FilmstripHint => LanguageService.IsVietnamese ? "Ẩn/hiện dải ảnh: Ctrl+F · Kéo mép trên để đổi chiều cao" : "Toggle filmstrip: Ctrl+F · Drag its top edge to resize";
