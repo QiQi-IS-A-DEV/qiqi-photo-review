@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>PhotoFileFilter</AssemblyName>
+    <RootNamespace>PhotoFileFilter</RootNamespace>
+    <Version>1.26.0</Version>
+    <Product>QiQi Studio — Photo File Filter</Product>
+    <Company>QiQi Studio</Company>
+    <Authors>QiQi Studio (QiQi-IS-A-DEV)</Authors>
+    <Copyright>Copyright © 2026 QiQi Studio (QiQi-IS-A-DEV)</Copyright>
+    <RepositoryUrl>https://github.com/QiQi-IS-A-DEV/qiqi-photo-review</RepositoryUrl>
+    <ApplicationIcon>Assets\qiqistudio.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PhotoFileFilter.Core\PhotoFileFilter.Core.csproj" />
+    <Resource Include="Assets\qiqistudio_nobackground.png" />
+    <Resource Include="Assets\qiqistudio.ico" />
+  </ItemGroup>
+
+</Project>

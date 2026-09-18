@@ -1,7 +1,7 @@
 # QiQi Photo Review
 
 <p align="center">
-  <img src="Assets/qiqistudio_nobackground.png" alt="QiQi Studio" width="120" />
+  <img src="src/PhotoFileFilter.App/Assets/qiqistudio_nobackground.png" alt="QiQi Studio" width="120" />
 </p>
 
 Ứng dụng desktop dành cho photographer trên Windows, hỗ trợ **import, review, chấm điểm, gắn nhãn màu và lọc ảnh RAW theo danh sách TXT**.
@@ -140,19 +140,19 @@ File `.txt` chỉ là danh sách tên ảnh dùng làm đầu vào cho màn hìn
 
 ## Chạy từ mã nguồn
 
-Mở `PhotoFileFilter.sln` bằng Visual Studio, chọn `PhotoFileFilter` làm Startup Project và nhấn `F5`.
+Mở `PhotoFileFilter.sln` bằng Visual Studio, chọn `PhotoFileFilter.App` làm Startup Project và nhấn `F5`.
 
 Hoặc chạy bằng .NET CLI:
 
 ```powershell
-dotnet run --project PhotoFileFilter.csproj
+dotnet run --project src/PhotoFileFilter.App/PhotoFileFilter.App.csproj
 ```
 
 ## Build và kiểm thử
 
 ```powershell
 dotnet build PhotoFileFilter.sln -c Release
-dotnet run --project Tests/PhotoFileFilter.Tests.csproj -c Release
+dotnet run --project tests/PhotoFileFilter.Tests/PhotoFileFilter.Tests.csproj -c Release
 ```
 
 Bộ kiểm thử hiện gồm **226 kiểm tra**, bao phủ parser TXT, quét thư mục, bảo vệ ảnh gốc, chính sách trùng tên, tiến độ copy theo byte, session Review và TXT Filter, chuyển ngôn ngữ, hướng dẫn sử dụng, rating, năm nhãn màu, export, Quick Preview, virtualization, xoay, zoom, preview, histogram và bố cục WPF.
@@ -202,20 +202,34 @@ Preview trong bộ nhớ có thể được giải phóng từ mục **Storage &
 ## Cấu trúc dự án
 
 ```text
-Core/                 Parser TXT, scanner, copy và kiểm tra đường dẫn
-Review/               Import, catalog, session, rating và histogram
-Services/             Hộp thoại Windows, preview và cấu hình
-ViewModels/           Trạng thái giao diện và commands
-Tests/                Kiểm thử logic và render bố cục WPF
-Assets/               Logo và icon ứng dụng
-MainWindow.*           Window host mỏng cho TXT Filter độc lập
-TxtFilterView.*        Workspace lọc ảnh theo TXT dùng lại trong shell Review
-ReviewWindow.*         Workspace Import & Review
-PreviewWindow.*        Cửa sổ xem nhanh ảnh
-publish.ps1            Script đóng gói portable cho Windows x64
+src/
+├─ PhotoFileFilter.App/             Ứng dụng WPF và composition root
+│  ├─ Features/
+│  │  ├─ Onboarding/Views/          Chọn ngôn ngữ lần đầu
+│  │  ├─ Review/                    Import, review, rating, Grid/Loupe và bàn giao
+│  │  └─ TxtFilter/                 Đọc TXT, quét, xem nhanh và điều khiển sao chép
+│  ├─ Shared/                       UI, dịch vụ và ViewModel dùng chung
+│  ├─ Assets/                       Logo và icon đóng gói cùng app
+│  └─ App.xaml                      Điểm khởi động và tài nguyên toàn app
+└─ PhotoFileFilter.Core/            Parser, scanner, copy và bảo vệ đường dẫn; không phụ thuộc WPF
+tests/
+└─ PhotoFileFilter.Tests/           Kiểm thử logic, workflow và render WPF
+docs/                               Kiến trúc, kế hoạch và tài liệu bảo trì
+examples/                           Dữ liệu đầu vào mẫu
+scripts/                            Script hỗ trợ phát triển
+publish.ps1                         Đóng gói portable Windows x64
 ```
 
+Xem [bản đồ kiến trúc và quy tắc đặt file](docs/PROJECT-STRUCTURE.md) trước khi thêm tính năng. Hướng dẫn gửi thay đổi nằm trong [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Phiên bản hiện tại
+
+**1.26.0 — chuẩn hóa cấu trúc dự án open source**
+
+- Tách solution thành `src`, `tests`, `docs`, `examples` và `scripts`.
+- Mã giao diện được gom theo workflow `Review`, `TxtFilter` và `Onboarding`; mã dùng chung nằm trong `Shared`.
+- Namespace khớp với đường dẫn file; Core giữ độc lập với WPF.
+- Bổ sung tài liệu kiến trúc, quy định quyền sở hữu thư mục và hướng dẫn đóng góp.
 
 **1.25.1 — bảng hướng dẫn phím tắt dễ đọc**
 
@@ -299,3 +313,9 @@ publish.ps1            Script đóng gói portable cho Windows x64
 - Hai popup hướng dẫn mô tả riêng quy trình Review và quy trình lọc TXT.
 - Cải thiện cách xuống dòng, tooltip và khả năng hiển thị văn bản trong cửa sổ nhỏ.
 - Hỗ trợ tùy chỉnh phím tắt và cấu hình xem ảnh.
+
+## Bản quyền và giấy phép
+
+Copyright © 2026 **QiQi Studio (QiQi-IS-A-DEV)**.
+
+Repository đang được chuẩn hóa để phát hành mã nguồn mở. Quyền sử dụng, sửa đổi và phân phối sẽ được xác định trong file `LICENSE` sau khi chủ dự án chọn giấy phép phù hợp.

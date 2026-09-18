@@ -47,9 +47,9 @@ Baseline đã có source protection, temporary-file commit, hủy có cleanup, E
 
 ```powershell
 git switch phase-3-copy-feedback
-dotnet run --project PhotoFileFilter.csproj -c Release
+dotnet run --project src/PhotoFileFilter.App/PhotoFileFilter.App.csproj -c Release
 # Bộ kiểm tra dùng fixture tự tạo, không cần ảnh thật:
-dotnet run --project Tests/PhotoFileFilter.Tests.csproj -c Release
+dotnet run --project tests/PhotoFileFilter.Tests/PhotoFileFilter.Tests.csproj -c Release
 ```
 
 Phase 1 so với main; phase 2 so với phase 1; phase 3 so với phase 2.
@@ -115,3 +115,9 @@ Theo kiểm duyệt: gộp Review và Deliver thành một tab, giữ Tools riê
 ## Bản ổn định 1.25.0
 
 Cập nhật hướng dẫn Review và TXT Filter bằng tiếng Anh/Việt theo giao diện cuối, bổ sung hướng dẫn Quick Preview và luồng Grid/Loupe hai chiều. README mô tả đúng hai tab Inspector, Histogram ở đầu và toàn bộ phím tắt hiện hành. Bản tích hợp đạt 226 checks ở cấu hình Release trước khi hợp nhất `phase-6-quick-preview` vào `main`.
+
+## Phase 7 — phase-7-project-structure
+
+Chuẩn hóa repository theo layout open source: `src/PhotoFileFilter.App`, `src/PhotoFileFilter.Core`, `tests/PhotoFileFilter.Tests`, `docs`, `examples` và `scripts`. App được chia theo feature Review, TXT Filter và Onboarding; mã dùng chung nằm trong Shared. Namespace khớp với đường dẫn và Core tiếp tục không phụ thuộc WPF.
+
+Bổ sung `docs/PROJECT-STRUCTURE.md`, `CONTRIBUTING.md`, metadata repository và thông tin bản quyền. Phase này không thay đổi workflow người dùng hoặc định dạng dữ liệu đã lưu.

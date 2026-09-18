@@ -1,4 +1,4 @@
-param([string]$Source = (Join-Path $PSScriptRoot '..\Assets\qiqistudio_nobackground.png'))
+param([string]$Source = (Join-Path $PSScriptRoot '..\src\PhotoFileFilter.App\Assets\qiqistudio_nobackground.png'))
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
 $taskImage = [System.Drawing.Image]::FromFile((Resolve-Path -LiteralPath $Source).Path)
@@ -16,7 +16,7 @@ try {
             $taskFrames += [pscustomobject]@{ Size = $taskSize; Bytes = $taskStream.ToArray() }
         } finally { $taskGraphics.Dispose(); $taskBitmap.Dispose(); $taskStream.Dispose() }
     }
-    $taskOutput = [System.IO.File]::Create((Join-Path $PSScriptRoot '..\Assets\qiqistudio.ico'))
+    $taskOutput = [System.IO.File]::Create((Join-Path $PSScriptRoot '..\src\PhotoFileFilter.App\Assets\qiqistudio.ico'))
     $taskWriter = [System.IO.BinaryWriter]::new($taskOutput)
     try {
         $taskWriter.Write([uint16]0); $taskWriter.Write([uint16]1); $taskWriter.Write([uint16]$taskFrames.Count)
