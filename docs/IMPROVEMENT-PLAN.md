@@ -99,3 +99,10 @@ Giữ các cải tiến phase 4 và Quick Preview phase 6. Các chỉnh sửa c�
 ## Quy tắc nhánh sau kiểm duyệt
 
 Mỗi phase/nghiệp vụ một nhánh, không dùng tiền tố codex/. Sửa tiếp trong cùng nhánh, không tạo nhánh fix riêng. Nhánh bản kiểm duyệt mới nhất: phase-6-quick-preview. Main chỉ gộp sau khi người dùng duyệt.
+## Cập nhật giao diện Review trên phase-4-virtualized-grid
+
+Inspector chia 3 tab Đánh giá / Bàn giao / Công cụ. Filmstrip kéo mép trên để đổi chiều cao 100–260 px, Ctrl+F hoặc checkbox dải ảnh để ẩn/hiện; lưu qua lần mở app.
+Nhãn tím dùng T hoặc nút tím/menu ngữ cảnh, có bộ lọc và undo, giữ nguyên giá trị enum của bốn màu cũ.
+Hover sao xem trước số sao, chỉ click mới lưu rating. Photo Source có chép đường dẫn / mở thư mục, vô hiệu khi chưa có thư mục nguồn đơn.
+Kiểm chứng trên phase 4: 205 checks gồm persistence, undo/filter màu tím, hover không ghi rating, bố cục từng tab và ẩn/phóng filmstrip.
+Thay đổi tiếp tục trên nhánh nghiệp vụ có sẵn, không tạo nhánh sửa lẻ.

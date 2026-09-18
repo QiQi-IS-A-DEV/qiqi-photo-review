@@ -21,6 +21,7 @@ public static class LanguageService
 
     private static readonly Dictionary<string, string> Vi = new(StringComparer.Ordinal)
     {
+        ["T · Purple"]="T · Tím", ["Purple Label"]="Nhãn tím", ["Purple label"]="Nhãn tím", ["PURPLE LABEL"]="NHÃN TÍM",
         ["Fast · 1,200 px"]="Nhanh · 1.200 px", ["Balanced · 1,800 px"]="Cân bằng · 1.800 px", ["Detailed · 2,400 px"]="Chi tiết · 2.400 px",
         ["For sharper detail: open Settings, choose Preview quality (up to Original), or enable Load original resolution when zooming. Quality changes apply immediately."]="Để soi rõ hơn: mở Cài đặt, chọn Chất lượng preview (tối đa Original), hoặc bật Tải độ phân giải gốc khi zoom. Thay đổi được áp dụng ngay.",
         ["High · 3,600 px"]="Cao · 3.600 px", ["Ultra · 4,800 px"]="Rất cao · 4.800 px", ["Original · full resolution"]="Original · Độ phân giải gốc",
