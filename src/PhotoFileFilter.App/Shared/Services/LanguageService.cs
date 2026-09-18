@@ -119,6 +119,8 @@ public static class LanguageService
         , ["← / → browse · Wheel to zoom · Drag to pan · R rotate · Esc close"]="← / → đổi ảnh · Con lăn zoom · Kéo để di chuyển · R xoay · Esc đóng"
         , ["Fit"]="Vừa khung", ["Rotate 90°"]="Xoay 90°", ["Previous photo"]="Ảnh trước", ["Next photo"]="Ảnh sau", ["Zoom out"]="Thu nhỏ", ["Zoom in"]="Phóng to"
         , ["Return to the Import & Review workspace"]="Trở về không gian Nhập & Review"
+        , ["Pause"]="Tạm dừng", ["Resume"]="Tiếp tục", ["Copy paused"]="Đã tạm dừng sao chép"
+        , ["Completed files are kept. Select Resume to continue or Cancel to stop."]="Các file đã hoàn tất được giữ lại. Chọn Tiếp tục để chạy tiếp hoặc Hủy để dừng."
     };
 
     public static void Initialize() { try { if (File.Exists(FilePath)) CurrentLanguage = Normalize(JsonSerializer.Deserialize<SavedLanguage>(File.ReadAllText(FilePath))?.Language); } catch { CurrentLanguage = English; } }

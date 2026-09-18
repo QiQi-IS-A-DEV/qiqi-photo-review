@@ -17,6 +17,7 @@ public sealed class MainViewModel : ObservableObject
     private readonly PhotoScannerService _scanner = new();
     private readonly FileCopyService _copier = new();
     private CancellationTokenSource? _cancellation;
+    private CopyPauseToken? _copyPause;
     private ScanResult? _scan;
     private CopyResult? _copy;
     private string? _lastDestination;
@@ -26,6 +27,7 @@ public sealed class MainViewModel : ObservableObject
     private int _policy, _duplicates;
     private double _progress;
     private bool _darkMode = true, _completionSound = true, _updatingSelection;
+    private bool _isPaused;
     private PhotoFile? _selectedFile;
     private string _searchText = "";
     private IReadOnlyList<PhotoFile> _visibleFiles = [];
@@ -45,6 +47,8 @@ public sealed class MainViewModel : ObservableObject
         ScanCommand = new(async () => await ScanAsync(), () => !Busy);
         CopyCommand = new(async () => await CopyAsync(), () => !Busy && CopyCount > 0);
         CancelCommand = new(() => { _cancellation?.Cancel(); Status = "Canceling…"; }, () => Busy);
+        PauseCommand = new(PauseCopy, () => CanPauseCopy);
+        ResumeCommand = new(ResumeCopy, () => CanResumeCopy);
         ExportCommand = new(() => Guard(ExportReport), () => !Busy && _scan != null);
         OpenDestinationCommand = new(() => Guard(() => _dialogs.OpenFolder(_lastDestination!)), () => !Busy && _lastDestination != null && Directory.Exists(_lastDestination));
         SelectRawCommand = new(() => { foreach (var item in Extensions) item.Selected = item.Name is "ARW" or "CR2" or "CR3" or "NEF" or "RAF" or "ORF" or "RW2" or "DNG"; }, () => !Busy);
@@ -71,6 +75,8 @@ public sealed class MainViewModel : ObservableObject
     public RelayCommand ScanCommand { get; }
     public RelayCommand CopyCommand { get; }
     public RelayCommand CancelCommand { get; }
+    public RelayCommand PauseCommand { get; }
+    public RelayCommand ResumeCommand { get; }
     public RelayCommand ExportCommand { get; }
     public RelayCommand OpenDestinationCommand { get; }
     public RelayCommand SelectRawCommand { get; }
@@ -116,9 +122,12 @@ public sealed class MainViewModel : ObservableObject
     public string SubfolderName { get => _subfolderName; set { if (Set(ref _subfolderName, value)) OutputChanged(); } }
     public int Policy { get => _policy; set => Set(ref _policy, value); }
     public string[] Policies => LanguageService.Texts("Rename — keep both", "Skip existing files", "Replace destination files");
-    public bool Busy { get => _busy; private set { Set(ref _busy, value); Notify(nameof(Idle)); RefreshCommands(); } }
+    public bool Busy { get => _busy; private set { Set(ref _busy, value); Notify(nameof(Idle)); NotifyPauseState(); RefreshCommands(); } }
     public bool Idle => !Busy;
-    public bool Scanning { get => _scanning; private set => Set(ref _scanning, value); }
+    public bool Scanning { get => _scanning; private set { if (Set(ref _scanning, value)) NotifyPauseState(); } }
+    public bool IsPaused { get => _isPaused; private set { if (Set(ref _isPaused, value)) NotifyPauseState(); } }
+    public bool CanPauseCopy => Busy && !Scanning && !IsPaused;
+    public bool CanResumeCopy => Busy && !Scanning && IsPaused;
     public double Progress { get => _progress; private set => Set(ref _progress, value); }
     public string Status { get => _status; private set => Set(ref _status, value); }
     public string Detail { get => _detail; private set => Set(ref _detail, value); }
@@ -155,7 +164,22 @@ public sealed class MainViewModel : ObservableObject
     private void OutputChanged() { Notify(nameof(DestinationPreview)); Notify(nameof(NeedsSubfolder)); Notify(nameof(UseSubfolder)); }
     private void RefreshCommands()
     {
-        foreach (var command in new[] { BrowseTxtCommand, BrowseSourceCommand, BrowseOutputCommand, ScanCommand, CopyCommand, CancelCommand, ExportCommand, OpenDestinationCommand, SelectRawCommand, SelectAllCommand, SelectJpgCommand, CopyMissingCommand, CopyPathCommand, RevealFileCommand, PreviewCommand, ToggleIncludedCommand, IncludeAllCommand }) command?.Refresh();
+        foreach (var command in new[] { BrowseTxtCommand, BrowseSourceCommand, BrowseOutputCommand, ScanCommand, CopyCommand, CancelCommand, PauseCommand, ResumeCommand, ExportCommand, OpenDestinationCommand, SelectRawCommand, SelectAllCommand, SelectJpgCommand, CopyMissingCommand, CopyPathCommand, RevealFileCommand, PreviewCommand, ToggleIncludedCommand, IncludeAllCommand }) command?.Refresh();
+    }
+    private void NotifyPauseState()
+    {
+        Notify(nameof(CanPauseCopy)); Notify(nameof(CanResumeCopy));
+        PauseCommand?.Refresh(); ResumeCommand?.Refresh();
+    }
+    private void PauseCopy()
+    {
+        if (!CanPauseCopy) return;
+        _copyPause?.Pause(); IsPaused = true; Status = "Copy paused"; Detail = "Completed files are kept. Select Resume to continue or Cancel to stop.";
+    }
+    private void ResumeCopy()
+    {
+        if (!CanResumeCopy) return;
+        _copyPause?.Resume(); IsPaused = false; Status = "Copying photos…";
     }
     private void NotifyResults()
     {
@@ -310,6 +334,7 @@ public sealed class MainViewModel : ObservableObject
             var destination = ResolveDestination();
             if (!_dialogs.ConfirmCopy(included.Count, scan.SourceFolder, destination, Policies[Policy])) return;
             _copy = null; StartOperation("Copying photos…", false); Detail = $"0 / {included.Count:N0} file";
+            _copyPause = new(); IsPaused = false;
             _lastDestination = destination;
             var progress = new Progress<OperationProgress>(p =>
             {
@@ -321,7 +346,7 @@ public sealed class MainViewModel : ObservableObject
             });
             var options = new CopyOptions(destination, (CollisionPolicy)Policy, included);
             var token = _cancellation!.Token;
-            _copy = await Task.Run(() => _copier.CopyAsync(scan, options, progress, token), token);
+            _copy = await Task.Run(() => _copier.CopyAsync(scan, options, progress, token, _copyPause), token);
             Status = _copy.Cancelled ? "Copy canceled" : _copy.Errors.Count > 0 ? "Copy completed with errors" : "Copy complete";
             Detail = $"{_copy.Copied:N0} copied · {_copy.Skipped:N0} skipped · {_copy.Errors.Count:N0} errors" + (_copy.Cancelled ? ". Files already copied were kept." : ".");
             CurrentFile = ""; NotifyResults();
@@ -329,7 +354,7 @@ public sealed class MainViewModel : ObservableObject
         }
         catch (OperationCanceledException) { Status = "Copy canceled"; Detail = "The operation was canceled."; }
         catch (Exception e) { Status = "Could not copy files"; Detail = e.Message; _dialogs.ShowError(e.Message); }
-        finally { EndOperation(); }
+        finally { _copyPause?.Resume(); _copyPause = null; IsPaused = false; EndOperation(); }
     }
     private void ExportReport()
     {

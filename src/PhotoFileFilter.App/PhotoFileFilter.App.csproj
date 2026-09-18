@@ -8,7 +8,7 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>PhotoFileFilter</AssemblyName>
     <RootNamespace>PhotoFileFilter</RootNamespace>
-    <Version>1.27.0</Version>
+    <Version>1.28.0</Version>
     <Product>QiQi Studio — Photo File Filter</Product>
     <Company>QiQi Studio</Company>
     <Authors>QiQi Studio (QiQi-IS-A-DEV)</Authors>

@@ -127,3 +127,9 @@ Bổ sung `docs/PROJECT-STRUCTURE.md`, `CONTRIBUTING.md`, metadata repository v�
 Giao diện Review, TXT Filter và Quick Preview dùng `TranslateExtension` để mỗi chuỗi tĩnh theo dõi trạng thái ngôn ngữ. Khi chọn Tiếng Việt hoặc English trong Settings, app lưu lựa chọn và cập nhật ngay các control đang mở, danh sách chọn, thông báo động và tiêu đề cửa sổ; không restart và không duyệt visual/logical tree.
 
 `LanguageService` vẫn là catalog trung tâm để các chuỗi động dùng chung cùng bản dịch. View model cung cấp `RefreshLanguage` để phát lại thông báo cho những thuộc tính được tính theo trạng thái. Kiểm chứng bản 1.27.0: 228 checks Release, gồm chuyển VI → EN → VI trên cùng cửa sổ Review.
+
+## Phase 9 — phase-9-copy-checkpoint
+
+TXT Filter có Pause/Resume trong lúc copy. `CopyPauseToken` dừng bất đồng bộ giữa các block mà không khóa UI; file đang ghi tiếp tục dùng tên tạm, còn file đã commit được giữ nguyên. Cancel khi đang pause vẫn đánh thức tác vụ và dọn file tạm.
+
+Khi tiếp tục, `FileCopyService` kiểm tra lại nguồn trước từng file nên file bị đổi hoặc xóa trong thời gian dừng được báo lỗi thay vì sao chép âm thầm. Kiểm chứng bản 1.28.0: 231 checks Release, gồm pause giữa file, resume không copy trùng và thay đổi nguồn sau checkpoint.

@@ -2,7 +2,7 @@ namespace PhotoFileFilter.Core;
 
 public sealed class FileCopyService
 {
-    public async Task<CopyResult> CopyAsync(ScanResult scan, CopyOptions options, IProgress<OperationProgress>? progress, CancellationToken token)
+    public async Task<CopyResult> CopyAsync(ScanResult scan, CopyOptions options, IProgress<OperationProgress>? progress, CancellationToken token, CopyPauseToken? pause = null)
     {
         var destination = PathSafety.Normalize(options.Destination);
         if (PathSafety.Equal(destination, scan.SourceFolder)) throw new IOException("Files cannot be copied directly into the source folder.");
@@ -23,6 +23,7 @@ public sealed class FileCopyService
         var lastReport = TimeSpan.Zero;
         foreach (var photo in batch)
         {
+            if (pause != null) await pause.WaitIfPausedAsync(token);
             if (token.IsCancellationRequested) return new(copied, skipped, errors, true);
             string? temporary = null;
             long currentBytes = 0;
@@ -51,9 +52,11 @@ public sealed class FileCopyService
                 await using (var input = new FileStream(photo.FullPath, FileMode.Open, FileAccess.Read, FileShare.Read, 1024 * 1024, true))
                 await using (var output = new FileStream(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None, 1024 * 1024, true))
                 {
-                    int read;
-                    while ((read = await input.ReadAsync(buffer.AsMemory(), token)) > 0)
+                    while (true)
                     {
+                        if (pause != null) await pause.WaitIfPausedAsync(token);
+                        var read = await input.ReadAsync(buffer.AsMemory(), token);
+                        if (read == 0) break;
                         await output.WriteAsync(buffer.AsMemory(0, read), token);
                         currentBytes += read; transferredBytes += read;
                         Report(currentBytes == read);

@@ -24,3 +24,46 @@ public record OperationProgress(int Completed, int Total, string CurrentFile,
 }
 public record CopyIssue(string File, string Reason);
 public record CopyResult(int Copied, int Skipped, IReadOnlyList<CopyIssue> Errors, bool Cancelled);
+
+public sealed class CopyPauseToken
+{
+    private readonly object _gate = new();
+    private TaskCompletionSource _resume = CompletedSource();
+    public bool IsPaused { get; private set; }
+
+    public void Pause()
+    {
+        lock (_gate)
+        {
+            if (IsPaused) return;
+            IsPaused = true;
+            _resume = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        }
+    }
+
+    public void Resume()
+    {
+        TaskCompletionSource resume;
+        lock (_gate)
+        {
+            if (!IsPaused) return;
+            IsPaused = false;
+            resume = _resume;
+        }
+        resume.TrySetResult();
+    }
+
+    public Task WaitIfPausedAsync(CancellationToken token)
+    {
+        Task wait;
+        lock (_gate) wait = IsPaused ? _resume.Task : Task.CompletedTask;
+        return wait.WaitAsync(token);
+    }
+
+    private static TaskCompletionSource CompletedSource()
+    {
+        var source = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        source.SetResult();
+        return source;
+    }
+}

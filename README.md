@@ -83,6 +83,7 @@ Lần mở đầu tiên, ứng dụng cho phép chọn **Tiếng Việt** hoặc
 - Ba cách xử lý khi trùng tên: tự đổi tên, bỏ qua hoặc thay thế file đích.
 - Xuất báo cáo TXT sau khi đối chiếu và sao chép.
 - Khi sao chép, hiển thị tiến độ theo byte, tốc độ MiB/s và thời gian còn lại ước tính.
+- Có thể **Tạm dừng / Tiếp tục** trong lúc sao chép. File đang ghi chỉ dùng tên tạm; các file hoàn tất được giữ làm checkpoint và mỗi file còn lại được kiểm tra lại trước khi tiếp tục.
 - Nút **Clear session** trên header xóa đường dẫn và kết quả hiện tại nhưng không thay đổi file TXT hoặc ảnh gốc.
 
 ## Phím tắt Review
@@ -155,7 +156,7 @@ dotnet build PhotoFileFilter.sln -c Release
 dotnet run --project tests/PhotoFileFilter.Tests/PhotoFileFilter.Tests.csproj -c Release
 ```
 
-Bộ kiểm thử hiện gồm **228 kiểm tra**, bao phủ parser TXT, quét thư mục, bảo vệ ảnh gốc, chính sách trùng tên, tiến độ copy theo byte, session Review và TXT Filter, chuyển ngôn ngữ trực tiếp, hướng dẫn sử dụng, rating, năm nhãn màu, export, Quick Preview, virtualization, xoay, zoom, preview, histogram và bố cục WPF.
+Bộ kiểm thử hiện gồm **231 kiểm tra**, bao phủ parser TXT, quét thư mục, bảo vệ ảnh gốc, chính sách trùng tên, tạm dừng/tiếp tục và tiến độ copy theo byte, session Review và TXT Filter, chuyển ngôn ngữ trực tiếp, hướng dẫn sử dụng, rating, năm nhãn màu, export, Quick Preview, virtualization, xoay, zoom, preview, histogram và bố cục WPF.
 
 ## Đóng gói bản portable
 
@@ -225,6 +226,12 @@ publish.ps1                         Đóng gói portable Windows x64
 Xem [bản đồ kiến trúc và quy tắc đặt file](docs/PROJECT-STRUCTURE.md) trước khi thêm tính năng. Hướng dẫn gửi thay đổi nằm trong [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Phiên bản hiện tại
+
+**1.28.0 — tạm dừng và tiếp tục sao chép**
+
+- Thêm nút Pause/Resume vào thanh thao tác của TXT Filter khi đang copy.
+- Giữ các file đã hoàn tất như checkpoint; file đang ghi vẫn là file tạm và được dọn khi hủy.
+- Kiểm tra lại kích thước và thời gian sửa của từng nguồn sau khi tiếp tục để tránh chép dữ liệu đã thay đổi.
 
 **1.27.0 — chuyển ngôn ngữ trực tiếp**
 

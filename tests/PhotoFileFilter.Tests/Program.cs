@@ -126,6 +126,37 @@ internal static class Program
             { if (p.TransferredBytes > 0) midFileCancel.Cancel(); }), midFileCancel.Token);
             Check(interrupted.Cancelled && interrupted.Copied == 0 && !Directory.EnumerateFiles(interruptedOutput).Any() && new FileInfo(largeCopyPath).Length == 4 * 1024 * 1024, "Cancelling inside a file removes its partial output and preserves the source");
         }
+        var pauseControl = new CopyPauseToken();
+        var pauseReached = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var pausedOutput = Path.Combine(_root, "paused-copy");
+        var pausedCopy = copier.CopyAsync(largeScan, new(pausedOutput, CollisionPolicy.Rename), new InlineProgress(p =>
+        {
+            if (p.TransferredBytes <= 0 || pauseControl.IsPaused) return;
+            pauseControl.Pause(); pauseReached.TrySetResult();
+        }), default, pauseControl);
+        await pauseReached.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        await Task.Delay(50);
+        Check(!pausedCopy.IsCompleted && Directory.EnumerateFiles(pausedOutput, "*.tmp").Any(), "Pause holds an in-progress file at a safe temporary checkpoint");
+        pauseControl.Resume();
+        var resumedCopy = await pausedCopy;
+        Check(resumedCopy.Copied == 1 && !Directory.EnumerateFiles(pausedOutput, "*.tmp").Any() && File.Exists(Path.Combine(pausedOutput, "large.jpg")), "Resume continues the same copy and commits the completed file once");
+        var checkpointSource = Path.Combine(_root, "checkpoint-source"); Directory.CreateDirectory(checkpointSource);
+        var checkpointA = Path.Combine(checkpointSource, "A.JPG"); var checkpointB = Path.Combine(checkpointSource, "B.JPG");
+        File.WriteAllBytes(checkpointA, new byte[2 * 1024 * 1024]); File.WriteAllBytes(checkpointB, new byte[2 * 1024 * 1024]);
+        var checkpointScan = Scan(checkpointSource, ["A", "B"]);
+        var checkpointPause = new CopyPauseToken();
+        var checkpointReached = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var checkpointOutput = Path.Combine(_root, "checkpoint-output");
+        var checkpointCopy = copier.CopyAsync(checkpointScan, new(checkpointOutput, CollisionPolicy.Rename), new InlineProgress(p =>
+        {
+            if (p.Completed != 1 || checkpointPause.IsPaused) return;
+            checkpointPause.Pause(); checkpointReached.TrySetResult();
+        }), default, checkpointPause);
+        await checkpointReached.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        File.AppendAllText(checkpointB, "changed while paused");
+        checkpointPause.Resume();
+        var checkpointResult = await checkpointCopy;
+        Check(checkpointResult.Copied == 1 && checkpointResult.Errors.Count == 1 && File.Exists(Path.Combine(checkpointOutput, "A.JPG")) && !File.Exists(Path.Combine(checkpointOutput, "B.JPG")), "Resume keeps completed checkpoints and revalidates each remaining source before copying");
         Throws(() => PathSafety.Destination(source, false, source, false, ""), "Output equal to source rejected");
         Throws(() => PathSafety.Destination(source, true, "", true, "../escape"), "Invalid output subfolder rejected");
         Throws(() => PathSafety.Destination(source, true, "", true, "CON"), "Windows reserved folder rejected");
