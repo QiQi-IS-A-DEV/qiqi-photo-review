@@ -14,6 +14,7 @@
     <Authors>QiQi Studio (QiQi-IS-A-DEV)</Authors>
     <Copyright>Copyright © 2026 QiQi Studio (QiQi-IS-A-DEV)</Copyright>
     <RepositoryUrl>https://github.com/QiQi-IS-A-DEV/qiqi-photo-review</RepositoryUrl>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <ApplicationIcon>Assets\qiqistudio.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>

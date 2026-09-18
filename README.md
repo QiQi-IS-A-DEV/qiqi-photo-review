@@ -169,6 +169,8 @@ File chạy được tạo tại:
 artifacts/publish/win-x64/PhotoFileFilter.exe
 ```
 
+Script cũng chép `LICENSE`, `NOTICE` và `README.md` vào thư mục publish để bản portable giữ đầy đủ thông tin giấy phép và ghi nhận.
+
 Thư mục `artifacts` không được đưa vào Git. Nếu cần phát hành file EXE qua GitHub, hãy đính kèm file từ thư mục này vào một GitHub Release.
 
 ## Dữ liệu được lưu ở đâu?
@@ -318,4 +320,6 @@ Xem [bản đồ kiến trúc và quy tắc đặt file](docs/PROJECT-STRUCTURE.
 
 Copyright © 2026 **QiQi Studio (QiQi-IS-A-DEV)**.
 
-Repository đang được chuẩn hóa để phát hành mã nguồn mở. Quyền sử dụng, sửa đổi và phân phối sẽ được xác định trong file `LICENSE` sau khi chủ dự án chọn giấy phép phù hợp.
+Dự án được phát hành theo [Apache License 2.0](LICENSE). Bạn có thể sử dụng, sửa đổi và phân phối mã nguồn theo các điều kiện của giấy phép. Các thông tin ghi nhận cần giữ lại được liệt kê trong [NOTICE](NOTICE).
+
+Apache-2.0 không cấp quyền sử dụng tên thương mại, nhãn hiệu hoặc nhận diện **QiQi Studio**, ngoại trừ việc mô tả hợp lý nguồn gốc của dự án và sao chép nội dung NOTICE.

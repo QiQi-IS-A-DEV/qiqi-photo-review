@@ -51,4 +51,6 @@ Không commit `artifacts`, `bin`, `obj`, dữ liệu ảnh cá nhân hoặc đư
 
 ## Bản quyền và giấy phép
 
-Copyright © 2026 QiQi Studio (QiQi-IS-A-DEV). Giấy phép sử dụng mã nguồn sẽ được công bố trong file `LICENSE` của repository.
+Copyright © 2026 QiQi Studio (QiQi-IS-A-DEV).
+
+Dự án sử dụng [Apache License 2.0](LICENSE). Trừ khi bạn ghi rõ khác đi, contribution được chủ động gửi để đưa vào dự án sẽ được cấp phép theo Apache-2.0 như quy định tại mục 5 của giấy phép. Khi phân phối bản sửa đổi, hãy giữ `LICENSE`, các thông tin bản quyền liên quan và nội dung ghi nhận trong `NOTICE`.

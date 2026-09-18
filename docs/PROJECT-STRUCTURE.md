@@ -48,6 +48,8 @@ flowchart LR
 | `examples` | File đầu vào mẫu, không chứa dữ liệu người dùng thật |
 | `scripts` | Công cụ hỗ trợ phát triển; không chứa logic runtime |
 | `docs` | Kiến trúc, kế hoạch và quyết định bảo trì |
+| `LICENSE` | Toàn văn Apache License 2.0 áp dụng cho mã nguồn |
+| `NOTICE` | Thông tin bản quyền và ghi nhận phải đi cùng bản phân phối |
 
 ## Quy tắc đặt mã mới
 
