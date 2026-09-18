@@ -18,7 +18,8 @@ public sealed record ReviewPreferences(
     string GridShortcut = "G",
     string LoupeShortcut = "E",
     int ClickZoomPercent = 200,
-    bool FullResolutionOnZoom = true);
+    bool FullResolutionOnZoom = true,
+    int ThumbnailSize = 166);
 
 public sealed class ReviewPreferencesService(string? filePath = null)
 {

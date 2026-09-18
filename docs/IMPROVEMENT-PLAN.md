@@ -55,3 +55,12 @@ dotnet run --project Tests/PhotoFileFilter.Tests.csproj -c Release
 Phase 1 so với main; phase 2 so với phase 1; phase 3 so với phase 2.
 Kiểm tra ảnh RAW thật, codec máy bạn, ổ USB và thư mục lớn vẫn cần bạn duyệt trước khi gộp.
 Không có benchmark thực tế cho 30–80 GB hoặc 8.000 ảnh trong đợt này.
+
+## Phase 4 — codex/phase-4-virtualized-grid
+
+Đã triển khai grid pixel-scrolling với virtualized fixed-size tiles và filmstrip VirtualizingStackPanel.
+Thanh chỉnh thumbnail 100–400 px, lưu qua lần mở app; điều hướng lên/xuống dùng số cột thực tế.
+Thumbnail tải theo ô được hiện, không còn giới hạn 120 ảnh đầu; tối đa 2 decode thumbnail đồng thời và giữ 512 thumbnail từ hàng đợi.
+Kiểm tra danh sách tổng hợp 8.000 mục: số container dưới 60 ở viewport 800×500, cuộn cuối, ScrollIntoView, selection, resize và thay collection.
+Đây là kiểm tra container và fixture JPG, chưa phải benchmark codec 8.000 RAW thật.
+Duyệt: bấm G, kéo thanh Cỡ ảnh dưới grid, cuộn và chọn nhiều ảnh; thử thư mục hơn 120 ảnh.

@@ -18,6 +18,9 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     private readonly ReviewPreferencesService _preferencesService;
     private readonly ReviewImportService _importer = new();
     private readonly PreviewService _preview = new();
+    private readonly SemaphoreSlim _thumbnailGate = new(2, 2);
+    private readonly HashSet<ReviewPhoto> _pendingThumbnails = [];
+    private readonly Queue<ReviewPhoto> _thumbnailOrder = new();
     private readonly HistogramService _histogram = new();
     private readonly SemaphoreSlim _previewDecodeGate = new(1, 1);
     private ReviewPhoto? _requestedPreviewPhoto;
@@ -151,6 +154,20 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     public int FilterIndex { get => _filterIndex; set { if (Set(ref _filterIndex, Math.Clamp(value, 0, Filters.Length - 1))) { ApplyFilter(); QueueSessionSave(); } } }
     public int ViewMode { get => _viewMode; set { if (Set(ref _viewMode, Math.Clamp(value, 0, 1))) { Notify(nameof(IsGrid)); Notify(nameof(IsLoupe)); QueueSessionSave(); _ = LoadCurrentPreviewAsync(); } } }
     public int ExportPolicy { get => _exportPolicy; set { if (Set(ref _exportPolicy, Math.Clamp(value, 0, ExportPolicies.Length - 1))) QueueSessionSave(); } }
+    private int _thumbnailSize = 166;
+    public int ThumbnailSize
+    {
+        get => _thumbnailSize;
+        set
+        {
+            if (!Set(ref _thumbnailSize, Math.Clamp(value, 100, 400))) return;
+            Notify(nameof(ThumbnailHeight)); Notify(nameof(TileWidth)); Notify(nameof(TileHeight)); SavePreferences();
+        }
+    }
+    public double ThumbnailHeight => ThumbnailSize * 0.65 + 37;
+    public double TileWidth => ThumbnailSize + 12;
+    public double TileHeight => ThumbnailHeight + 12;
+    public string ThumbnailSizeLabel => LanguageService.IsVietnamese ? "Cỡ ảnh" : "Thumbnails";
     public bool IsGrid => ViewMode == 0;
     public bool IsLoupe => ViewMode == 1;
     public bool HasNoPhotos => Photos.Count == 0;
@@ -292,6 +309,7 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
 
     private void ApplyPreferences(ReviewPreferences value)
     {
+        _thumbnailSize = Math.Clamp(value.ThumbnailSize, 100, 400);
         _previewMaxEdge = PreviewSizeOptions.Contains(value.PreviewMaxEdge) ? value.PreviewMaxEdge : 2400;
         _fullResolutionOnZoom = value.FullResolutionOnZoom;
         _zoomStepPercent = ZoomStepOptions.Contains(value.ZoomStepPercent) ? value.ZoomStepPercent : 25;
@@ -311,13 +329,13 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     private void SavePreferences()
     {
         _preferencesService.Save(new(PreviewMaxEdge, ZoomStepPercent, OverlayDurationMs, OverlayPosition, DefaultView, StartWithPanelsHidden, HistogramEnabled,
-            HelpShortcut, ZenShortcut, UndoShortcut, ResetZoomShortcut, GridShortcut, LoupeShortcut, ClickZoomPercent, FullResolutionOnZoom));
+            HelpShortcut, ZenShortcut, UndoShortcut, ResetZoomShortcut, GridShortcut, LoupeShortcut, ClickZoomPercent, FullResolutionOnZoom, ThumbnailSize));
     }
 
     public void ResetPreferences()
     {
         ApplyPreferences(new());
-        foreach (var name in new[] { nameof(PreviewMaxEdge), nameof(FullResolutionOnZoom), nameof(ZoomStepPercent), nameof(ClickZoomPercent), nameof(OverlayDurationMs), nameof(OverlayPosition), nameof(DefaultView), nameof(StartWithPanelsHidden), nameof(HistogramEnabled), nameof(HelpShortcut), nameof(ZenShortcut), nameof(UndoShortcut), nameof(ResetZoomShortcut), nameof(GridShortcut), nameof(LoupeShortcut), nameof(ViewMode), nameof(IsGrid), nameof(IsLoupe) }) Notify(name);
+        foreach (var name in new[] { nameof(ThumbnailSize), nameof(ThumbnailHeight), nameof(TileWidth), nameof(TileHeight), nameof(PreviewMaxEdge), nameof(FullResolutionOnZoom), nameof(ZoomStepPercent), nameof(ClickZoomPercent), nameof(OverlayDurationMs), nameof(OverlayPosition), nameof(DefaultView), nameof(StartWithPanelsHidden), nameof(HistogramEnabled), nameof(HelpShortcut), nameof(ZenShortcut), nameof(UndoShortcut), nameof(ResetZoomShortcut), nameof(GridShortcut), nameof(LoupeShortcut), nameof(ViewMode), nameof(IsGrid), nameof(IsLoupe) }) Notify(name);
         _ = LoadCurrentPreviewAsync(force: true);
         SavePreferences(); Status = "Restored the default Photo Review settings.";
     }
@@ -503,6 +521,7 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     {
         _previewCancellation?.Cancel(); _requestedPreviewEdge = null; IsPreviewLoading = false;
         _preview.ClearCache();
+        _thumbnailOrder.Clear();
         Zoom = 1; ResetPan(); PreviewImage = null; HistogramImage = null; HistogramSummary = "No histogram data"; HistogramAssessment = "Preview memory released."; PreviewMessage = "Preview memory released. Select a photo to load it again.";
         foreach (var photo in Photos) photo.Thumbnail = null;
         GC.Collect(GC.MaxGeneration, GCCollectionMode.Optimized, false);
@@ -517,6 +536,7 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
         {
             _sessionSaveCancellation?.Cancel(); _previewCancellation?.Cancel();
             _preview.ClearCache();
+            _thumbnailOrder.Clear();
             PreviewImage = null; CurrentPhoto = null; FilteredPhotos.Clear(); Photos.Clear();
             _undo.Clear(); UndoCommand.Refresh();
             _sourceInputs = []; Folder = ""; _filterIndex = 0; _viewMode = 0;
@@ -590,7 +610,7 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
         foreach (var photo in Photos.Where(MatchesFilter)) FilteredPhotos.Add(photo);
         CurrentPhoto = previous != null && FilteredPhotos.Contains(previous) ? previous : FilteredPhotos.FirstOrDefault();
         NotifyCounts();
-        _ = WarmThumbnailsAsync(FilteredPhotos.Take(120).ToArray(), _importCancellation?.Token ?? default);
+        _ = WarmThumbnailsAsync(FilteredPhotos.Take(24).ToArray(), _importCancellation?.Token ?? default);
     }
     private bool MatchesFilter(ReviewPhoto photo) => FilterIndex switch
     {
@@ -652,16 +672,41 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     }
     private async Task WarmThumbnailsAsync(IReadOnlyList<ReviewPhoto> photos, CancellationToken token)
     {
-        foreach (var photo in photos.Where(p => p.Thumbnail == null))
+        foreach (var photo in photos)
         {
-            if (token.IsCancellationRequested) return;
+            if (token.IsCancellationRequested || _disposed) return;
+            await RequestThumbnailAsync(photo);
+        }
+    }
+    public async Task RequestThumbnailAsync(ReviewPhoto photo)
+    {
+        if (_disposed || photo.Thumbnail != null || !_pendingThumbnails.Add(photo)) return;
+        var token = _importCancellation?.Token ?? default;
+        try
+        {
+            await _thumbnailGate.WaitAsync(token);
             try
             {
+                if (_disposed || !Photos.Contains(photo)) return;
                 var result = await Task.Run(() => _preview.Load(photo.FullPath, token, 240), token);
-                if (!token.IsCancellationRequested) photo.Thumbnail = result.Image;
+                if (!token.IsCancellationRequested && !_disposed && Photos.Contains(photo))
+                {
+                    photo.Thumbnail = result.Image;
+                    if (result.Image != null)
+                    {
+                        _thumbnailOrder.Enqueue(photo);
+                        while (_thumbnailOrder.Count > 512)
+                        {
+                            var oldest = _thumbnailOrder.Dequeue();
+                            if (oldest != CurrentPhoto) oldest.Thumbnail = null;
+                        }
+                    }
+                }
             }
-            catch (Exception e) when (e is OperationCanceledException or IOException or NotSupportedException) { if (e is OperationCanceledException) return; }
+            finally { _thumbnailGate.Release(); }
         }
+        catch (Exception e) when (e is OperationCanceledException or IOException or NotSupportedException or UnauthorizedAccessException) { }
+        finally { _pendingThumbnails.Remove(photo); }
     }
     private void NotifyCurrent()
     {

@@ -192,6 +192,22 @@ internal static class Program
         var previewService = new PreviewService();
         var jpegResult = await Task.Run(() => previewService.Load(previewPath, default));
         Check(jpegResult.Image is { IsFrozen: true }, "JPEG preview is decoded off-thread into an immutable image");
+        using (var thumbVm = new ReviewViewModel(new FakeDialogs(), new ReviewCatalogService(Path.Combine(_root, "thumb-catalog.json")), new ReviewSessionService(Path.Combine(_root, "thumb-session.json"))))
+        {
+            var thumbDirectory = Path.Combine(_root, "thumbnail-demand"); Directory.CreateDirectory(thumbDirectory);
+            for (var index = 0; index < 514; index++)
+            {
+                var path = Path.Combine(thumbDirectory, $"photo-{index}.jpg"); File.Copy(previewPath, path);
+                var info = new FileInfo(path); thumbVm.Photos.Add(new(path, thumbDirectory, info.Length, info.LastWriteTimeUtc));
+            }
+            foreach (var photo in thumbVm.Photos) await thumbVm.RequestThumbnailAsync(photo);
+            Check(thumbVm.Photos[^1].Thumbnail != null, "Viewport thumbnail requests load photos beyond the old first-120 limit");
+            Check(thumbVm.Photos.Count(photo => photo.Thumbnail != null) == 512 && thumbVm.Photos[0].Thumbnail == null, "Thumbnail retention releases older images after 512 decoded tiles");
+            await thumbVm.RequestThumbnailAsync(thumbVm.Photos[0]);
+            Check(thumbVm.Photos[0].Thumbnail != null, "Returning to an evicted thumbnail reloads it on demand");
+            thumbVm.ThumbnailSize = 350;
+            Check(new ReviewPreferencesService(Path.Combine(_root, "review-preferences.json")).Load().ThumbnailSize == 350, "Thumbnail size persists in review preferences");
+        }
         var histogram = new HistogramService().Calculate(jpegResult.Image!, default);
         Check(histogram.Chart.IsFrozen && histogram.HighlightPercent == 0 && histogram.ShadowPercent == 0 && histogram.AverageLuminance is > 0.5 and < 0.6, "RGB histogram reports luminance and clipping from the decoded preview");
         var portraitPath = Path.Combine(_root, "preview", "portrait.jpg");
@@ -457,12 +473,18 @@ internal static class Program
         await Render(previewWindow, Path.Combine(screenshot, "preview.png"));
         previewWindow.Close();
         reviewVm.FilterIndex = 0;
+        reviewVm.ViewMode = 0;
         var reviewWindow = new ReviewWindow(reviewVm) { WindowStartupLocation = WindowStartupLocation.Manual, Left = -20000, Top = -20000, Width = 1360, Height = 820, ShowInTaskbar = false, ShowActivated = false };
         Check(((System.Windows.Controls.ListBox)reviewWindow.FindName("GridPhotos")).SelectionMode == System.Windows.Controls.SelectionMode.Extended, "Grid supports Ctrl-click and Shift-click multi-selection");
         typeof(ReviewWindow).GetMethod("OnToggleZen", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.Invoke(reviewWindow, [reviewWindow, new RoutedEventArgs()]);
         Check(((System.Windows.Controls.ColumnDefinition)reviewWindow.FindName("NavigatorColumn")).Width.Value == 0 && ((System.Windows.Controls.ColumnDefinition)reviewWindow.FindName("RatingColumn")).Width.Value == 0, "Zen mode hides both review sidebars");
         typeof(ReviewWindow).GetMethod("OnToggleZen", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.Invoke(reviewWindow, [reviewWindow, new RoutedEventArgs()]);
         Check(((System.Windows.Controls.ColumnDefinition)reviewWindow.FindName("NavigatorColumn")).Width.Value > 0 && ((System.Windows.Controls.ColumnDefinition)reviewWindow.FindName("RatingColumn")).Width.Value > 0, "Zen mode restores both review sidebars");
+        await CheckVirtualizedGrid(reviewWindow);
+        reviewVm.ThumbnailSize = 260;
+        Check(reviewVm.TileWidth == 272 && reviewVm.ThumbnailHeight == 206, "Thumbnail size updates both layout dimensions");
+        await Render(reviewWindow, Path.Combine(screenshot, "review-grid-large.png"));
+        reviewVm.ThumbnailSize = 166;
         await Render(reviewWindow, Path.Combine(screenshot, "review-grid.png"));
         reviewWindow.ShowHelpPopup();
         Check(((FrameworkElement)reviewWindow.FindName("HelpOverlay")).Visibility == Visibility.Visible, "F1 help is available as an in-window popup");
@@ -517,6 +539,44 @@ internal static class Program
         Check(dialogs.Errors.Count == 0, "No unexpected UI errors during full workflow");
         Console.WriteLine($"\n{_passed} checks passed. Fixtures: {_root}\nScreenshots: {screenshot}");
         // Keep fixtures for manual reproduction; they contain generated text, never user photos.
+    }
+    private static T? FindVisual<T>(DependencyObject root) where T : DependencyObject
+    {
+        if (root is T match) return match;
+        for (var i = 0; i < VisualTreeHelper.GetChildrenCount(root); i++)
+            if (FindVisual<T>(VisualTreeHelper.GetChild(root, i)) is { } child) return child;
+        return null;
+    }
+    private static async Task CheckVirtualizedGrid(ReviewWindow workspace)
+    {
+        var items = new System.Collections.ObjectModel.ObservableCollection<string>(Enumerable.Range(0, 8000).Select(i => $"Photo {i:0000}"));
+        var factory = new FrameworkElementFactory(typeof(VirtualizingPhotoPanel));
+        var list = new System.Windows.Controls.ListBox
+        {
+            ItemsSource = items, Width = 800, Height = 500,
+            SelectionMode = System.Windows.Controls.SelectionMode.Extended,
+            ItemsPanel = new System.Windows.Controls.ItemsPanelTemplate(factory),
+            Style = (Style)workspace.FindResource("ReviewListBox")
+        };
+        System.Windows.Controls.ScrollViewer.SetCanContentScroll(list, true);
+        System.Windows.Controls.ScrollViewer.SetHorizontalScrollBarVisibility(list, System.Windows.Controls.ScrollBarVisibility.Disabled);
+        void Layout() { list.Measure(new Size(800, 500)); list.Arrange(new Rect(0, 0, 800, 500)); list.UpdateLayout(); }
+        Layout();
+        var panel = FindVisual<VirtualizingPhotoPanel>(list)!;
+        Check(panel != null && panel.RealizedCount is > 0 and < 60 && panel.ScrollOwner != null, "8,000-item grid realizes only visible rows and connects pixel scrolling");
+        list.SelectedItems.Add(items[1]); list.SelectedItems.Add(items[4]);
+        panel!.SetVerticalOffset(double.PositiveInfinity); Layout();
+        Check(list.ItemContainerGenerator.ContainerFromIndex(7999) != null && list.ItemContainerGenerator.ContainerFromIndex(0) == null && panel.RealizedCount < 60, "Scrolling to the end realizes the last photo and releases first-row containers");
+        Check(list.SelectedItems.Count == 2, "Virtualized scrolling preserves multi-selection outside the viewport");
+        list.ScrollIntoView(items[4000]);
+        await Dispatcher.Yield(DispatcherPriority.ApplicationIdle); Layout();
+        Check(list.ItemContainerGenerator.ContainerFromIndex(4000) != null, "ScrollIntoView realizes an off-screen selected photo");
+        panel.ItemWidth = 312; panel.ItemHeight = 250; Layout();
+        Check(panel.Columns == 2 && panel.RealizedCount < 20, "Resizing thumbnail cells recalculates columns without realizing the catalog");
+        items.Clear(); items.Add("Only photo"); Layout();
+        Check(panel.VerticalOffset == 0 && panel.RealizedCount == 1, "Filtering down to one photo clamps stale scroll offsets and clears containers");
+        items.Insert(0, "Inserted"); Layout(); items.RemoveAt(1); Layout();
+        Check(panel.RealizedCount == 1 && list.ItemContainerGenerator.ContainerFromIndex(0) is System.Windows.Controls.ListBoxItem { Content: "Inserted" }, "Collection insertion and removal keep generated containers aligned");
     }
     private static async Task Render(Window window, string path)
     {

@@ -180,7 +180,11 @@ public partial class ReviewWindow : Window
         return false;
     }
     private ReviewPhoto[] ReviewTargets() => _viewModel.IsGrid && GridPhotos.SelectedItems.Count > 0 ? GridPhotos.SelectedItems.Cast<ReviewPhoto>().ToArray() : _viewModel.CurrentPhoto == null ? [] : [_viewModel.CurrentPhoto];
-    private void OnGridSelectionChanged(object sender, SelectionChangedEventArgs e) => _viewModel.UpdateSelectionCount(GridPhotos.SelectedItems.Count);
+    private void OnGridSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        _viewModel.UpdateSelectionCount(GridPhotos.SelectedItems.Count);
+        if (GridPhotos.SelectedItem != null) GridPhotos.ScrollIntoView(GridPhotos.SelectedItem);
+    }
     private void OnGridRightClick(object sender, MouseButtonEventArgs e)
     {
         if (ItemsControl.ContainerFromElement(GridPhotos, e.OriginalSource as DependencyObject) is not ListBoxItem item) return;
@@ -199,7 +203,14 @@ public partial class ReviewWindow : Window
     private void OnContextFlag(object sender, RoutedEventArgs e) { if (sender is FrameworkElement { Tag: string value } && Enum.TryParse<ReviewFlag>(value, out var flag)) _viewModel.SetFlag(ReviewTargets(), flag); }
     private void OnContextLoupe(object sender, RoutedEventArgs e) => _viewModel.SelectAndLoupe(_viewModel.CurrentPhoto);
     private void OnContextReveal(object sender, RoutedEventArgs e) { if (_viewModel.RevealCommand.CanExecute(null)) _viewModel.RevealCommand.Execute(null); }
-    private int GridColumnCount() => Math.Max(1, (int)(GridPhotos.ActualWidth / 174));
+    private int GridColumnCount() => FindPhotoPanel(GridPhotos)?.Columns ?? Math.Max(1, (int)(GridPhotos.ActualWidth / _viewModel.TileWidth));
+    private static VirtualizingPhotoPanel? FindPhotoPanel(DependencyObject root)
+    {
+        if (root is VirtualizingPhotoPanel panel) return panel;
+        for (var i = 0; i < System.Windows.Media.VisualTreeHelper.GetChildrenCount(root); i++)
+            if (FindPhotoPanel(System.Windows.Media.VisualTreeHelper.GetChild(root, i)) is { } found) return found;
+        return null;
+    }
     private void OnOpenFilter(object sender, RoutedEventArgs e)
         => ShowFilterScreen();
     private void OnSendFilteredToFilter(object sender, RoutedEventArgs e)
@@ -305,6 +316,10 @@ public partial class ReviewWindow : Window
             "Enter" => e.Key == Key.Enter && plain,
             _ => false
         };
+    }
+    private async void OnPhotoTileLoaded(object sender, RoutedEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: ReviewPhoto photo }) await _viewModel.RequestThumbnailAsync(photo);
     }
     private void OnGridDoubleClick(object sender, MouseButtonEventArgs e) { if (GridPhotos.SelectedItem is ReviewPhoto photo) _viewModel.SelectAndLoupe(photo); }
     private void OnFilmstripSelectionChanged(object sender, SelectionChangedEventArgs e) { if (Filmstrip.SelectedItem != null) Filmstrip.ScrollIntoView(Filmstrip.SelectedItem); }
