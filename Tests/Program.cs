@@ -462,6 +462,9 @@ internal static class Program
         Check(window.Icon != null && Application.GetResourceStream(new Uri("pack://application:,,,/PhotoFileFilter;component/Assets/qiqistudio_nobackground.png")) != null, "QiQi Studio icon and original logo are embedded resources");
         ((TxtFilterView)window.Content).ShowHelpPopup();
         Check(((FrameworkElement)((TxtFilterView)window.Content).FindName("FilterHelpOverlay")).Visibility == Visibility.Visible, "TXT Filter has its own in-window workflow guide");
+        var filterGuideScan = (System.Windows.Controls.TextBlock)((TxtFilterView)window.Content).FindName("FilterGuideScanStep");
+        var filterGuideScanText = string.Concat(filterGuideScan.Inlines.OfType<System.Windows.Documents.Run>().Select(run => run.Text));
+        Check(filterGuideScanText.Contains("Quick Preview") && filterGuideScanText.Contains("Left/Right") && filterGuideScanText.Contains("R to rotate"), "TXT Filter guide documents Quick Preview navigation, zoom, pan and rotation");
         await Render(window, Path.Combine(screenshot, "filter-help.png"));
         ((TxtFilterView)window.Content).HideHelpPopup();
         await Render(window, Path.Combine(screenshot, "results.png"));
@@ -563,6 +566,10 @@ internal static class Program
 
         reviewWindow.ShowHelpPopup();
         Check(((FrameworkElement)reviewWindow.FindName("HelpOverlay")).Visibility == Visibility.Visible, "F1 help is available as an in-window popup");
+        var reviewGuideWorkflow = (System.Windows.Controls.TextBlock)reviewWindow.FindName("ReviewGuideWorkflow");
+        var reviewGuideMouse = (System.Windows.Controls.TextBlock)reviewWindow.FindName("ReviewGuideMouse");
+        Check(reviewGuideWorkflow.Text.Contains("press Space again") && reviewGuideWorkflow.Text.Contains("Ctrl+F") && reviewGuideWorkflow.Text.Contains("6–9 or T"), "Review guide documents Grid/Loupe toggle, Filmstrip and Purple label controls");
+        Check(reviewGuideMouse.Text.Contains("press Space again to return to Grid"), "Mouse guide explains both directions of the Space toggle");
         await Render(reviewWindow, Path.Combine(screenshot, "review-help.png"));
         typeof(ReviewWindow).GetMethod("HideHelpPopup", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.Invoke(reviewWindow, null);
         typeof(ReviewWindow).GetMethod("OnShowSettings", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.Invoke(reviewWindow, [reviewWindow, new RoutedEventArgs()]);
@@ -619,6 +626,9 @@ internal static class Program
         var vietnameseReview = new ReviewWindow(vietnameseVm) { Width = 1360, Height = 820 };
         LanguageService.Apply(vietnameseReview);
         Check(((FrameworkElement)vietnameseReview.FindName("ReviewEmptyState")).Visibility == Visibility.Visible && vietnameseReview.Title == $"QiQi Studio · Nhập & Review · v{typeof(ReviewWindow).Assembly.GetName().Version!.ToString(3)}", "Review presents a localized starting action and versioned title before a folder is imported");
+        var vietnameseReviewWorkflow = (System.Windows.Controls.TextBlock)vietnameseReview.FindName("ReviewGuideWorkflow");
+        var vietnameseReviewWorkflowText = string.Concat(vietnameseReviewWorkflow.Inlines.OfType<System.Windows.Documents.Run>().Select(run => run.Text));
+        Check(vietnameseReviewWorkflowText.Contains("nhấn Space lần nữa") && ((System.Windows.Controls.TextBlock)vietnameseReview.FindName("ReviewGuideMouse")).Text.Contains("về Grid"), "Vietnamese Review guide translates the current Grid/Loupe workflow");
         await Render(vietnameseReview, Path.Combine(screenshot, "vietnamese-review.png"));
         vietnameseReview.ShowHelpPopup();
         await Render(vietnameseReview, Path.Combine(screenshot, "vietnamese-review-help.png"));
@@ -627,6 +637,9 @@ internal static class Program
         await Render(vietnameseReview, Path.Combine(screenshot, "vietnamese-settings.png"));
         var vietnameseFilter = new MainWindow { DataContext = new MainViewModel(dialogs), Width = 1280, Height = 940 };
         LanguageService.Apply(vietnameseFilter);
+        var vietnameseFilterGuide = (System.Windows.Controls.TextBlock)((TxtFilterView)vietnameseFilter.Content).FindName("FilterGuideScanStep");
+        var vietnameseFilterGuideText = string.Concat(vietnameseFilterGuide.Inlines.OfType<System.Windows.Documents.Run>().Select(run => run.Text));
+        Check(vietnameseFilterGuideText.Contains("Xem nhanh"), "Vietnamese TXT guide translates Quick Preview instructions");
         await Render(vietnameseFilter, Path.Combine(screenshot, "vietnamese-filter.png"));
         ((TxtFilterView)vietnameseFilter.Content).ShowHelpPopup();
         await Render(vietnameseFilter, Path.Combine(screenshot, "vietnamese-filter-help.png"));

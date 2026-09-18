@@ -17,6 +17,22 @@ Lần mở đầu tiên, ứng dụng cho phép chọn **Tiếng Việt** hoặc
 
 > Ứng dụng không chỉnh sửa, di chuyển hoặc xóa ảnh gốc. Rating, nhãn màu và góc xoay chỉ được lưu trong dữ liệu cục bộ của ứng dụng.
 
+## Hướng dẫn sử dụng nhanh
+
+### Review và chọn ảnh
+
+1. Chọn **Import folder** hoặc kéo thả ảnh/thư mục vào cửa sổ.
+2. Dùng Grid để duyệt ảnh; nhấp đúp hoặc nhấn `Space` để mở Loupe. Nhấn `Space` lần nữa để trở về Grid.
+3. Chấm sao, gắn nhãn màu hoặc đặt cờ Pick/Reject. Dùng **Photo Filter** để chỉ giữ lại các ảnh cần xem.
+4. Trong **Review + Deliver**, xuất danh sách TXT hoặc chọn **Send to TXT Filter** để chuyển trực tiếp các tên đang hiển thị.
+
+### Tìm và sao chép RAW
+
+1. Chọn danh sách `.txt` hoặc nhận danh sách từ màn hình Review.
+2. Chọn thư mục chứa RAW, loại file cần tìm và quy tắc khớp tên, sau đó chọn **Scan**.
+3. Kiểm tra kết quả; nhấn `Space` hoặc nhấp đúp để mở Quick Preview. Trong cửa sổ xem nhanh, dùng `←`/`→` để đổi ảnh, con lăn để zoom, kéo để pan, `R` để xoay và `Esc` để đóng.
+4. Bỏ chọn file không cần, chọn thư mục đích và cách xử lý trùng tên, rồi chọn **Copy**.
+
 ## Tính năng chính
 
 ### Import và review ảnh
@@ -24,14 +40,16 @@ Lần mở đầu tiên, ứng dụng cho phép chọn **Tiếng Việt** hoặc
 - Import toàn bộ thư mục bằng hộp thoại Windows có hiển thị ảnh để xác nhận đúng thư mục.
 - Kéo thả một ảnh, nhiều ảnh hoặc cả thư mục trực tiếp vào cửa sổ.
 - Tùy chọn đọc ảnh trong các thư mục con.
-- Chuyển nhanh giữa chế độ **Grid** và **Loupe**.
+- Chuyển nhanh giữa **Grid** và **Loupe** bằng `Space`, `G` hoặc `E`.
+- Grid ảo hóa chỉ tạo các ô đang hiển thị; thanh **Cỡ ảnh** thay đổi thumbnail từ 100–400 px.
+- Filmstrip có thể kéo thay đổi chiều cao và ẩn/hiện bằng `Ctrl + F`; lựa chọn được tự động lưu.
 - Chọn nhiều ảnh bằng `Ctrl + click` hoặc `Shift + click` rồi áp dụng rating, màu hoặc cờ cho cả nhóm.
 - Tự lưu và khôi phục phiên làm việc gần nhất khi mở lại ứng dụng.
 
 ### Đánh giá và lọc ảnh
 
 - Chấm từ 0 đến 5 sao.
-- Gắn nhãn màu đỏ, vàng, xanh lá hoặc xanh dương.
+- Gắn nhãn đỏ, vàng, xanh lá, xanh dương hoặc tím; rê chuột trên sao để xem trước rating trước khi lưu.
 - Đánh dấu **Pick**, **Reject** hoặc bỏ cờ.
 - Lọc theo rating, trạng thái và nhãn màu; khi bộ lọc không có kết quả, app giải thích nguyên nhân và cho phép trở về tất cả ảnh ngay tại chỗ.
 - Hoàn tác thao tác review gần nhất bằng `Ctrl + Z`.
@@ -45,6 +63,7 @@ Lần mở đầu tiên, ứng dụng cho phép chọn **Tiếng Việt** hoặc
 - Kéo ảnh bằng chuột khi đang zoom lớn hơn 100%.
 - Xoay trái hoặc phải 90° mà không thay đổi file gốc.
 - Histogram RGB giúp kiểm tra nhanh vùng sáng, vùng tối và độ sáng trung bình.
+- Inspector có hai tab **Review + Deliver** và **Tools**; Histogram luôn nằm đầu tab Review + Deliver.
 - Có chế độ ẩn hai bảng bên để dành thêm không gian xem ảnh.
 - Cho phép tùy chỉnh độ phân giải preview, bước zoom, vị trí thông báo và một số phím tắt.
 - Trong **Cài đặt → Chất lượng preview**, chọn 1.200, 1.800, 2.400, 3.600, 4.800 px hoặc **Original · Độ phân giải gốc**. Thay đổi được áp dụng ngay trên ảnh đang xem.
@@ -59,9 +78,11 @@ Lần mở đầu tiên, ứng dụng cho phép chọn **Tiếng Việt** hoặc
 - Có thể bỏ phần mở rộng để tên JPG khớp với file RAW cùng tên.
 - Hỗ trợ tìm trong thư mục con và chọn nhiều loại file cùng lúc.
 - Hiển thị file tìm thấy, tên không tìm thấy và các lỗi trong lúc quét.
+- Quick Preview mở không khóa cửa sổ chính: `←`/`→` đổi ảnh, con lăn zoom, kéo để pan, `R` xoay góc xem và `Esc` đóng.
 - Cho phép bỏ chọn từng file trước khi sao chép.
 - Ba cách xử lý khi trùng tên: tự đổi tên, bỏ qua hoặc thay thế file đích.
 - Xuất báo cáo TXT sau khi đối chiếu và sao chép.
+- Khi sao chép, hiển thị tiến độ theo byte, tốc độ MiB/s và thời gian còn lại ước tính.
 - Nút **Clear session** trên header xóa đường dẫn và kết quả hiện tại nhưng không thay đổi file TXT hoặc ảnh gốc.
 
 ## Phím tắt Review
@@ -71,7 +92,7 @@ Lần mở đầu tiên, ứng dụng cho phép chọn **Tiếng Việt** hoặc
 | `←` / `→` | Ảnh trước / ảnh sau |
 | `↑` / `↓` | Di chuyển lên / xuống một hàng trong Grid |
 | `0`–`5` | Xóa hoặc đặt rating |
-| `6`–`9` | Gắn nhãn đỏ / vàng / xanh lá / xanh dương |
+| `6`–`9` / `T` | Gắn nhãn đỏ / vàng / xanh lá / xanh dương / tím |
 | `*` | Xóa nhãn màu |
 | `P` / `X` / `U` | Pick / Reject / bỏ cờ |
 | `G` / `E` | Mở Grid / Loupe |
@@ -81,6 +102,7 @@ Lần mở đầu tiên, ứng dụng cho phép chọn **Tiếng Việt** hoặc
 | `` ` `` hoặc `Ctrl + 0` | Đưa ảnh về Fit toàn khung |
 | `Ctrl + Z` | Hoàn tác thao tác review gần nhất |
 | `Tab` | Ẩn / hiện hai bảng bên |
+| `Ctrl + F` | Ẩn / hiện Filmstrip |
 | `F1` | Mở hướng dẫn sử dụng |
 | `Ctrl + 1` / `Ctrl + 2` | Chuyển giữa Import & Review và TXT Filter |
 
@@ -133,7 +155,7 @@ dotnet build PhotoFileFilter.sln -c Release
 dotnet run --project Tests/PhotoFileFilter.Tests.csproj -c Release
 ```
 
-Bộ kiểm thử hiện gồm **163 kiểm tra**, bao phủ parser TXT, quét thư mục, bảo vệ ảnh gốc, chính sách trùng tên, session Review và TXT Filter, chuyển ngôn ngữ, rating, nhãn màu, phạm vi export, xoay, zoom, độ phân giải preview, histogram và bố cục WPF.
+Bộ kiểm thử hiện gồm **226 kiểm tra**, bao phủ parser TXT, quét thư mục, bảo vệ ảnh gốc, chính sách trùng tên, tiến độ copy theo byte, session Review và TXT Filter, chuyển ngôn ngữ, hướng dẫn sử dụng, rating, năm nhãn màu, export, Quick Preview, virtualization, xoay, zoom, preview, histogram và bố cục WPF.
 
 ## Đóng gói bản portable
 
@@ -186,13 +208,23 @@ Services/             Hộp thoại Windows, preview và cấu hình
 ViewModels/           Trạng thái giao diện và commands
 Tests/                Kiểm thử logic và render bố cục WPF
 Assets/               Logo và icon ứng dụng
-MainWindow.*           Màn hình lọc ảnh theo TXT
+MainWindow.*           Window host mỏng cho TXT Filter độc lập
+TxtFilterView.*        Workspace lọc ảnh theo TXT dùng lại trong shell Review
 ReviewWindow.*         Workspace Import & Review
 PreviewWindow.*        Cửa sổ xem nhanh ảnh
 publish.ps1            Script đóng gói portable cho Windows x64
 ```
 
 ## Phiên bản hiện tại
+
+**1.25.0 — bản ổn định hợp nhất vào main**
+
+- Cập nhật hướng dẫn Review và TXT Filter theo đúng thao tác hiện tại, bằng cả tiếng Anh và tiếng Việt.
+- Hoàn thiện kiến trúc workspace TXT Filter, cache preview, chỉ mục JPG đồng hành và tiến độ copy theo byte.
+- Grid/Filmstrip được ảo hóa; thumbnail và chiều cao Filmstrip có thể điều chỉnh.
+- Inspector gồm **Review + Deliver | Tools**, với Histogram ở đầu.
+- Thêm nhãn tím, xem trước rating khi hover và Quick Preview có điều hướng/zoom/pan/xoay.
+- `Space` chuyển Grid ↔ Loupe. Chế độ Compare thử nghiệm đã được loại bỏ trước bản ổn định.
 
 **1.24.1 — Inspector theo góp ý kiểm duyệt**
 
@@ -215,13 +247,11 @@ publish.ps1            Script đóng gói portable cho Windows x64
 - Kéo chuột trong Loupe đã zoom để pan; không cần giữ Space.
 - Giữ grid virtualization, thanh Cỡ ảnh và Quick Preview TXT nâng cấp.
 
-**1.23.0 — bản kiểm duyệt phase 4–6**
+**1.23.0 — bản thử nghiệm nội bộ**
 
 - Grid và filmstrip có virtualization; thanh Cỡ ảnh 100–400 px được lưu qua lần mở app.
 - Thumbnail tải theo ô xuất hiện, kể cả ảnh ngoài 120 mục đầu; giới hạn hàng đợi lưu thumbnail.
-- Bấm C / So sánh để ghim ảnh trái và duyệt ảnh phải; zoom/pan đồng bộ, ghim lại hoặc đổi hai bên.
 - Quick Preview TXT không khóa cửa sổ chính; ←/→ chuyển ảnh, con lăn zoom, kéo để pan, R xoay tạm thời, Esc đóng.
-- So sánh dùng tỷ lệ Fit cho từng ảnh, không phải pixel 1:1; ảnh ghim chưa lưu khi đóng app.
 
 **1.22.0 — bản kiểm duyệt trên nhánh phase-3-copy-feedback**
 
@@ -229,7 +259,7 @@ publish.ps1            Script đóng gói portable cho Windows x64
 - Cache preview LRU tối đa 5 ảnh / 192 MiB ước tính và chỉ mục JPG đồng hành cho RAW.
 - Copy có tiến độ theo byte, tốc độ MiB/s và ETA; thanh tiến độ dễ quan sát hơn.
 - Bỏ nút Close cạnh Settings; thêm phím 1/V/Enter và 2/E ở màn hình chọn ngôn ngữ.
-- Chưa gộp main; xem docs/IMPROVEMENT-PLAN.md để kiểm duyệt các phase.
+- Các thay đổi ở giai đoạn này được kiểm duyệt trên nhánh phase trước khi hợp nhất.
 
 **1.21.1**
 

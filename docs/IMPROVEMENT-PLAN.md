@@ -32,7 +32,7 @@ Duyệt tay: copy RAW lớn, Skip/Rename/Replace, hủy giữa file và kiểm t
 
 4. [Đã triển khai ở phase 4] VirtualizingWrapPanel + thumbnail slider: cần kiểm tra 3.000–8.000 ảnh, selection, keyboard navigation và DPI; không chỉ đổi panel rồi tuyên bố tối ưu.
 5. Semantic theme và resource localization: thay trọn bộ màu/chuỗi cả hai workspace, bỏ restart và traversal; kiểm tra EN/VI, contrast, control tạo trễ.
-6. Compare đã triển khai ở phase 5. Navigator viewport, clipping overlay, inspector tabs và quick preview tiếp tục tách nhánh.
+6. Compare đã được thử nghiệm rồi loại bỏ theo kiểm duyệt. Navigator viewport, clipping overlay và pause/resume copy vẫn là các hướng cải tiến tiếp theo.
 7. Pause/resume copy và checkpoint: cần định nghĩa việc xác minh đích sau khi dừng, đổi nguồn, ngắt ổ đĩa, tránh copy trùng khi Rename.
 
 ## Nhận xét về bản đánh giá
@@ -67,12 +67,7 @@ Duyệt: bấm G, kéo thanh Cỡ ảnh dưới grid, cuộn và chọn nhiều 
 
 ## Phase 5 — đã hủy: Compare
 
-Nút C / So sánh mở hai ảnh cạnh nhau; chọn hai ảnh ở Grid để dùng đúng cặp đã chọn, hoặc ghim ảnh hiện tại.
-Trái là ảnh ghim, phải là ảnh đang chấm; ←/→ chỉ đổi ảnh bên phải, bỏ qua ảnh ghim.
-Con lăn và Space+kéo đồng bộ zoom/pan; G/E hoặc Esc thoát Compare. Có Ghim ảnh bên phải và Đổi hai bên.
-Giữ zoom khi đổi ứng viên; giải phóng reference khi rời Compare; serialize RAW decode và hủy tác vụ cũ.
-200 checks đạt, gồm race decode, pin/swap/navigation, thiếu ảnh, EN/VI và render Compare.
-Zoom là tỷ lệ so với Fit của từng pane, không phải đối chiếu pixel 1:1 giữa hai ảnh khác kích thước. Cặp Compare chưa lưu qua lần đóng app (mở lại ở Loupe).
+Compare từng được triển khai và kiểm thử trên nhánh thử nghiệm. Sau kiểm duyệt, toàn bộ tính năng đã được loại bỏ; phím `Space` tiếp tục chuyển hai chiều giữa Grid và Loupe. Không có mã Compare trong bản ổn định.
 
 ## Phase 6 — phase-6-quick-preview
 
@@ -101,7 +96,7 @@ Giữ các cải tiến phase 4 và Quick Preview phase 6. Các chỉnh sửa c�
 Mỗi phase/nghiệp vụ một nhánh, không dùng tiền tố codex/. Sửa tiếp trong cùng nhánh, không tạo nhánh fix riêng. Nhánh bản kiểm duyệt mới nhất: phase-6-quick-preview. Main chỉ gộp sau khi người dùng duyệt.
 ## Cập nhật giao diện Review trên phase-4-virtualized-grid
 
-Inspector chia 3 tab Đánh giá / Bàn giao / Công cụ. Filmstrip kéo mép trên để đổi chiều cao 100–260 px, Ctrl+F hoặc checkbox dải ảnh để ẩn/hiện; lưu qua lần mở app.
+Inspector gồm 2 tab Review + Deliver / Tools; Histogram nằm đầu tab Review + Deliver. Filmstrip kéo mép trên để đổi chiều cao 100–260 px, Ctrl+F hoặc checkbox dải ảnh để ẩn/hiện; lưu qua lần mở app.
 Nhãn tím dùng T hoặc nút tím/menu ngữ cảnh, có bộ lọc và undo, giữ nguyên giá trị enum của bốn màu cũ.
 Hover sao xem trước số sao, chỉ click mới lưu rating. Photo Source có chép đường dẫn / mở thư mục, vô hiệu khi chưa có thư mục nguồn đơn.
 Kiểm chứng trên phase 4: 205 checks gồm persistence, undo/filter màu tím, hover không ghi rating, bố cục từng tab và ẩn/phóng filmstrip.
@@ -111,8 +106,12 @@ Thay đổi tiếp tục trên nhánh nghiệp vụ có sẵn, không tạo nhá
 
 Tích hợp cập nhật Review từ phase-4-virtualized-grid vào phase-6-quick-preview. Giữ Space Grid/Loupe và không đưa Compare trở lại. Các việc lớn còn lại: semantic theme, localization không restart, navigator viewport, clipping overlay và pause/resume copy.
 
-Kiểm chứng bản tích hợp 1.24.0: 221 checks đạt ở Release; render Inspector, Bàn giao, Công cụ và filmstrip ở 1360×820, 1080×680; Space Grid/Loupe và Quick Preview vẫn đạt kiểm tra hồi quy.
+Kiểm chứng bản tích hợp 1.25.0 ở cấu hình Release; render hướng dẫn Review/TXT Filter bằng tiếng Anh và tiếng Việt, Inspector, Tools và filmstrip ở các kích thước cửa sổ mục tiêu; Space Grid/Loupe và Quick Preview tiếp tục có kiểm tra hồi quy.
 
 ## Điều chỉnh 1.24.1
 
 Theo kiểm duyệt: gộp Review và Deliver thành một tab, giữ Tools riêng. Histogram lên đầu; tiếp theo Rating, Rotate/Zoom và Deliver. Cập nhật cùng phase-4-virtualized-grid và tích hợp phase-6-quick-preview, không tạo nhánh mới.
+
+## Bản ổn định 1.25.0
+
+Cập nhật hướng dẫn Review và TXT Filter bằng tiếng Anh/Việt theo giao diện cuối, bổ sung hướng dẫn Quick Preview và luồng Grid/Loupe hai chiều. README mô tả đúng hai tab Inspector, Histogram ở đầu và toàn bộ phím tắt hiện hành. Bản tích hợp đạt 226 checks ở cấu hình Release trước khi hợp nhất `phase-6-quick-preview` vào `main`.

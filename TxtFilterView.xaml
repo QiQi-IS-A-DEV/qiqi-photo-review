@@ -236,7 +236,7 @@
                             <TextBlock TextWrapping="Wrap" LineHeight="21"><Run FontWeight="SemiBold" Text="1. Add the filename list. "/><Run Text="Choose a TXT file or drop it onto Filename List. The list can contain names such as IMG_1001 or IMG_1002.JPG."/></TextBlock>
                             <TextBlock TextWrapping="Wrap" LineHeight="21" Margin="0,8,0,0"><Run FontWeight="SemiBold" Text="2. Set the matching rules. "/><Run Text="Choose how names are separated. Keep Ignore file extensions enabled when a JPG list should find RAW files with the same base name."/></TextBlock>
                             <TextBlock TextWrapping="Wrap" LineHeight="21" Margin="0,8,0,0"><Run FontWeight="SemiBold" Text="3. Choose the source photos. "/><Run Text="Select JPG, RAW, All, or individual file types. Choose the folder that contains the originals and enable Search subfolders when needed."/></TextBlock>
-                            <TextBlock TextWrapping="Wrap" LineHeight="21" Margin="0,8,0,0"><Run FontWeight="SemiBold" Text="4. Scan and check the results. "/><Run Text="Select Scan Photos or press F5. Review Files Found, Not Found, and Notes / Errors. Clear the COPY check box for any file you do not want to copy."/></TextBlock>
+                            <TextBlock x:Name="FilterGuideScanStep" TextWrapping="Wrap" LineHeight="21" Margin="0,8,0,0"><Run FontWeight="SemiBold" Text="4. Scan and check the results. "/><Run Text="Select Scan Photos or press F5. Review Files Found, Not Found, and Notes / Errors. Clear the COPY check box for any file you do not want to copy. Select a result and press Space or double-click to open Quick Preview; use Left/Right to browse, the wheel to zoom, drag to pan, R to rotate the view, and Esc to close."/></TextBlock>
                             <TextBlock TextWrapping="Wrap" LineHeight="21" Margin="0,8,0,0"><Run FontWeight="SemiBold" Text="5. Copy the selected files. "/><Run Text="Choose the destination and the action for duplicate filenames, then select Copy Photos and confirm the summary."/></TextBlock>
 
                             <Border BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0" Margin="0,16,0,14"/>
@@ -247,7 +247,7 @@
                             <Grid>
                                 <Grid.ColumnDefinitions><ColumnDefinition Width="110"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                                 <TextBlock FontFamily="Consolas" Text="Ctrl+1 / Ctrl+2&#x0a;Ctrl+O&#x0a;F5&#x0a;Space&#x0a;Esc / F1" LineHeight="21"/>
-                                <TextBlock Grid.Column="1" Text="Switch between Review and TXT Filter&#x0a;Choose a TXT list&#x0a;Scan the source folder&#x0a;Preview the selected result&#x0a;Cancel an operation / close this guide" LineHeight="21"/>
+                                <TextBlock Grid.Column="1" Text="Switch between Review and TXT Filter&#x0a;Choose a TXT list&#x0a;Scan the source folder&#x0a;Open Quick Preview for the selected result&#x0a;Cancel an operation / close this guide" LineHeight="21"/>
                             </Grid>
                         </StackPanel>
                     </ScrollViewer>
