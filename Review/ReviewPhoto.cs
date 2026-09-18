@@ -6,7 +6,7 @@ using System.Windows.Media.Imaging;
 namespace PhotoFileFilter.Review;
 
 public enum ReviewFlag { None, Pick, Reject }
-public enum ReviewColor { None, Red, Yellow, Green, Blue }
+public enum ReviewColor { None, Red, Yellow, Green, Blue, Purple }
 
 public sealed class ReviewPhoto : INotifyPropertyChanged
 {
@@ -40,9 +40,9 @@ public sealed class ReviewPhoto : INotifyPropertyChanged
     public string Stars => Rating == 0 ? "—" : new string('★', Rating) + new string('☆', 5 - Rating);
     public string RatingLabel => Rating == 0 ? "Unrated" : $"{Rating} stars";
     public string FlagLabel => Flag switch { ReviewFlag.Pick => "PICK", ReviewFlag.Reject => "REJECT", _ => "" };
-    public string ColorLabelName => ColorLabel switch { ReviewColor.Red => "Red", ReviewColor.Yellow => "Yellow", ReviewColor.Green => "Green", ReviewColor.Blue => "Blue", _ => "No color" };
-    public string ColorHex => ColorLabel switch { ReviewColor.Red => "#D95454", ReviewColor.Yellow => "#E1B83D", ReviewColor.Green => "#4BAE71", ReviewColor.Blue => "#438BC5", _ => "Transparent" };
-    public string ColorBackgroundHex => ColorLabel switch { ReviewColor.Red => "#8A706E", ReviewColor.Yellow => "#8B8662", ReviewColor.Green => "#66806D", ReviewColor.Blue => "#66788B", _ => "#1C1C1C" };
+    public string ColorLabelName => ColorLabel switch { ReviewColor.Red => "Red", ReviewColor.Yellow => "Yellow", ReviewColor.Green => "Green", ReviewColor.Blue => "Blue", ReviewColor.Purple => "Purple", _ => "No color" };
+    public string ColorHex => ColorLabel switch { ReviewColor.Red => "#D95454", ReviewColor.Yellow => "#E1B83D", ReviewColor.Green => "#4BAE71", ReviewColor.Blue => "#438BC5", ReviewColor.Purple => "#AC78D1", _ => "Transparent" };
+    public string ColorBackgroundHex => ColorLabel switch { ReviewColor.Red => "#8A706E", ReviewColor.Yellow => "#8B8662", ReviewColor.Green => "#66806D", ReviewColor.Blue => "#66788B", ReviewColor.Purple => "#867091", _ => "#1C1C1C" };
     public string TileTextHex => ColorLabel == ReviewColor.None ? "#E4E4E4" : "#111111";
     public BitmapSource? Thumbnail { get => _thumbnail; set => Set(ref _thumbnail, value); }
     public int Rotation { get => _rotation; set => Set(ref _rotation, ((value % 360) + 360) % 360); }

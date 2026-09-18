@@ -64,3 +64,11 @@ Thumbnail tải theo ô được hiện, không còn giới hạn 120 ảnh đ�
 Kiểm tra danh sách tổng hợp 8.000 mục: số container dưới 60 ở viewport 800×500, cuộn cuối, ScrollIntoView, selection, resize và thay collection.
 Đây là kiểm tra container và fixture JPG, chưa phải benchmark codec 8.000 RAW thật.
 Duyệt: bấm G, kéo thanh Cỡ ảnh dưới grid, cuộn và chọn nhiều ảnh; thử thư mục hơn 120 ảnh.
+
+## Cập nhật giao diện Review trên phase-4-virtualized-grid
+
+Inspector chia 3 tab Đánh giá / Bàn giao / Công cụ. Filmstrip kéo mép trên để đổi chiều cao 100–260 px, Ctrl+F hoặc checkbox dải ảnh để ẩn/hiện; lưu qua lần mở app.
+Nhãn tím dùng T hoặc nút tím/menu ngữ cảnh, có bộ lọc và undo, giữ nguyên giá trị enum của bốn màu cũ.
+Hover sao xem trước số sao, chỉ click mới lưu rating. Photo Source có chép đường dẫn / mở thư mục, vô hiệu khi chưa có thư mục nguồn đơn.
+Kiểm chứng trên phase 4: 205 checks gồm persistence, undo/filter màu tím, hover không ghi rating, bố cục từng tab và ẩn/phóng filmstrip.
+Thay đổi tiếp tục trên nhánh nghiệp vụ có sẵn, không tạo nhánh sửa lẻ.

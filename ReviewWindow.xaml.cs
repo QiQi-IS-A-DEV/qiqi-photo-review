@@ -87,6 +87,7 @@ public partial class ReviewWindow : Window
             return;
         }
         if (e.OriginalSource is TextBox or ComboBox) return;
+        if (control && e.Key == Key.F) { _viewModel.ShowFilmstrip = !_viewModel.ShowFilmstrip; e.Handled = true; return; }
         if (MatchesShortcut(e, _viewModel.UndoShortcut)) { _viewModel.Undo(); e.Handled = true; return; }
         if (control && e.Key == Key.OemOpenBrackets) { _viewModel.Rotate(ReviewTargets(), -90); e.Handled = true; return; }
         if (control && e.Key == Key.OemCloseBrackets) { _viewModel.Rotate(ReviewTargets(), 90); e.Handled = true; return; }
@@ -113,6 +114,7 @@ public partial class ReviewWindow : Window
             case Key.D7: case Key.NumPad7: _viewModel.SetColor(ReviewTargets(), ReviewColor.Yellow); break;
             case Key.D8: case Key.NumPad8: _viewModel.SetColor(ReviewTargets(), ReviewColor.Green); break;
             case Key.D9: case Key.NumPad9: _viewModel.SetColor(ReviewTargets(), ReviewColor.Blue); break;
+            case Key.T when Keyboard.Modifiers == ModifierKeys.None: _viewModel.SetColor(ReviewTargets(), ReviewColor.Purple); break;
             case Key.P: _viewModel.SetFlag(ReviewTargets(), ReviewFlag.Pick); break;
             case Key.X: _viewModel.SetFlag(ReviewTargets(), ReviewFlag.Reject); break;
             case Key.U: _viewModel.SetFlag(ReviewTargets(), ReviewFlag.None); break;
@@ -121,6 +123,12 @@ public partial class ReviewWindow : Window
         }
         e.Handled = true;
     }
+    private void OnRatingHover(object sender, MouseEventArgs e) { if (sender is FrameworkElement { Tag: string value } && int.TryParse(value, out var rating)) _viewModel.PreviewRating(rating); }
+    private void OnRatingLeave(object sender, MouseEventArgs e) => _viewModel.PreviewRating(null);
+    private void OnFilmstripResize(object sender, System.Windows.Controls.Primitives.DragDeltaEventArgs e) => _viewModel.FilmstripHeight -= (int)Math.Round(e.VerticalChange);
+    private void OnFilmstripResizeCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e) => _viewModel.SaveFilmstripSize();
+    private void OnCopyFolder(object sender, RoutedEventArgs e) => _viewModel.CopySourceFolder();
+    private void OnOpenSourceFolder(object sender, RoutedEventArgs e) => _viewModel.OpenSourceFolder();
     private void OnRateClick(object sender, RoutedEventArgs e) { if (sender is FrameworkElement { Tag: string value } && int.TryParse(value, out var rating)) _viewModel.SetRating(ReviewTargets(), rating); }
     private void OnPick(object sender, RoutedEventArgs e) => _viewModel.SetFlag(ReviewTargets(), ReviewFlag.Pick);
     private void OnReject(object sender, RoutedEventArgs e) => _viewModel.SetFlag(ReviewTargets(), ReviewFlag.Reject);

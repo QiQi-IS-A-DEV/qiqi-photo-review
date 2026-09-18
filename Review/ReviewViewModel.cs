@@ -83,7 +83,7 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
 
     public ObservableCollection<ReviewPhoto> Photos { get; } = [];
     public ObservableCollection<ReviewPhoto> FilteredPhotos { get; } = [];
-    public string[] Filters { get; } = LanguageService.Texts("All Photos", "Pick", "≥ 1 Star", "≥ 3 Stars", "5 Stars", "Reject", "Unrated", "Red Label", "Yellow Label", "Green Label", "Blue Label");
+    public string[] Filters { get; } = LanguageService.Texts("All Photos", "Pick", "≥ 1 Star", "≥ 3 Stars", "5 Stars", "Reject", "Unrated", "Red Label", "Yellow Label", "Green Label", "Blue Label", "Purple Label");
     public string[] ExportPolicies { get; } = LanguageService.Texts("Rename — keep both", "Skip existing files", "Replace destination files");
     public int[] PreviewSizeOptions { get; } = [1200, 1800, 2400, 3600, 4800, 0];
     public PreviewQualityOption[] PreviewQualityOptions { get; } =
@@ -122,7 +122,7 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     public RelayCommand WindowsCacheCleanupCommand { get; }
     public RelayCommand UndoCommand { get; }
     public RelayCommand ShowAllCommand { get; }
-    public string Folder { get => _folder; private set { Set(ref _folder, value); Notify(nameof(FolderName)); } }
+    public string Folder { get => _folder; private set { Set(ref _folder, value); Notify(nameof(FolderName)); Notify(nameof(HasSourceFolder)); } }
     public string FolderName => string.IsNullOrWhiteSpace(Folder) ? LanguageService.Text("No folder imported") : Path.GetFileName(Path.TrimEndingDirectorySeparator(Folder));
     public bool Recursive { get => _recursive; set { if (Set(ref _recursive, value)) QueueSessionSave(); } }
     public bool Busy { get => _busy; private set { Set(ref _busy, value); RefreshCommands(); } }
@@ -154,6 +154,35 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     public int FilterIndex { get => _filterIndex; set { if (Set(ref _filterIndex, Math.Clamp(value, 0, Filters.Length - 1))) { ApplyFilter(); QueueSessionSave(); } } }
     public int ViewMode { get => _viewMode; set { if (Set(ref _viewMode, Math.Clamp(value, 0, 1))) { Notify(nameof(IsGrid)); Notify(nameof(IsLoupe)); QueueSessionSave(); _ = LoadCurrentPreviewAsync(); } } }
     public int ExportPolicy { get => _exportPolicy; set { if (Set(ref _exportPolicy, Math.Clamp(value, 0, ExportPolicies.Length - 1))) QueueSessionSave(); } }
+    private bool _showFilmstrip = true;
+    private int _filmstripHeight = 124;
+    private int? _hoverRating;
+    public bool ShowFilmstrip { get => _showFilmstrip; set { if (Set(ref _showFilmstrip, value)) { Notify(nameof(FilmstripRowHeight)); SavePreferences(); } } }
+    public int FilmstripHeight
+    {
+        get => _filmstripHeight;
+        set
+        {
+            if (!Set(ref _filmstripHeight, Math.Clamp(value, 100, 260))) return;
+            Notify(nameof(FilmstripRowHeight)); Notify(nameof(FilmThumbHeight)); Notify(nameof(FilmThumbWidth));
+        }
+    }
+    public double FilmstripRowHeight => ShowFilmstrip ? FilmstripHeight : 0;
+    public double FilmThumbHeight => FilmstripHeight - 50;
+    public double FilmThumbWidth => FilmThumbHeight * 1.45;
+    public void SaveFilmstripSize() => SavePreferences();
+    public int DisplayRating => _hoverRating ?? CurrentPhoto?.Rating ?? 0;
+    public void PreviewRating(int? rating) { _hoverRating = rating.HasValue ? Math.Clamp(rating.Value, 0, 5) : null; Notify(nameof(DisplayRating)); }
+    public string InspectorReviewLabel => LanguageService.IsVietnamese ? "Đánh giá" : "Review";
+    public string InspectorDeliverLabel => LanguageService.IsVietnamese ? "Bàn giao" : "Deliver";
+    public string InspectorToolsLabel => LanguageService.IsVietnamese ? "Công cụ" : "Tools";
+    public string FilmstripLabel => LanguageService.IsVietnamese ? "Dải ảnh" : "Filmstrip";
+    public string FilmstripHint => LanguageService.IsVietnamese ? "Ẩn/hiện dải ảnh: Ctrl+F · Kéo mép trên để đổi chiều cao" : "Toggle filmstrip: Ctrl+F · Drag its top edge to resize";
+    public bool HasSourceFolder => Directory.Exists(Folder);
+    public string CopyFolderLabel => LanguageService.IsVietnamese ? "Chép đường dẫn" : "Copy path";
+    public string OpenFolderLabel => LanguageService.IsVietnamese ? "Mở thư mục" : "Open folder";
+    public void CopySourceFolder() => Guard(() => { if (Directory.Exists(Folder)) _dialogs.CopyText(Folder); });
+    public void OpenSourceFolder() => Guard(() => { if (Directory.Exists(Folder)) _dialogs.OpenFolder(Folder); });
     private int _thumbnailSize = 166;
     public int ThumbnailSize
     {
@@ -191,6 +220,7 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
         set
         {
             if (!Set(ref _current, value)) return;
+            _hoverRating = null;
             ResetZoom();
             HistogramImage = null; HistogramSummary = value == null ? "No histogram data" : "Analyzing tones…"; HistogramAssessment = "";
             NotifyCurrent();
@@ -309,6 +339,7 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
 
     private void ApplyPreferences(ReviewPreferences value)
     {
+        _showFilmstrip = value.ShowFilmstrip; _filmstripHeight = Math.Clamp(value.FilmstripHeight, 100, 260);
         _thumbnailSize = Math.Clamp(value.ThumbnailSize, 100, 400);
         _previewMaxEdge = PreviewSizeOptions.Contains(value.PreviewMaxEdge) ? value.PreviewMaxEdge : 2400;
         _fullResolutionOnZoom = value.FullResolutionOnZoom;
@@ -329,13 +360,13 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     private void SavePreferences()
     {
         _preferencesService.Save(new(PreviewMaxEdge, ZoomStepPercent, OverlayDurationMs, OverlayPosition, DefaultView, StartWithPanelsHidden, HistogramEnabled,
-            HelpShortcut, ZenShortcut, UndoShortcut, ResetZoomShortcut, GridShortcut, LoupeShortcut, ClickZoomPercent, FullResolutionOnZoom, ThumbnailSize));
+            HelpShortcut, ZenShortcut, UndoShortcut, ResetZoomShortcut, GridShortcut, LoupeShortcut, ClickZoomPercent, FullResolutionOnZoom, ThumbnailSize, ShowFilmstrip, FilmstripHeight));
     }
 
     public void ResetPreferences()
     {
         ApplyPreferences(new());
-        foreach (var name in new[] { nameof(ThumbnailSize), nameof(ThumbnailHeight), nameof(TileWidth), nameof(TileHeight), nameof(PreviewMaxEdge), nameof(FullResolutionOnZoom), nameof(ZoomStepPercent), nameof(ClickZoomPercent), nameof(OverlayDurationMs), nameof(OverlayPosition), nameof(DefaultView), nameof(StartWithPanelsHidden), nameof(HistogramEnabled), nameof(HelpShortcut), nameof(ZenShortcut), nameof(UndoShortcut), nameof(ResetZoomShortcut), nameof(GridShortcut), nameof(LoupeShortcut), nameof(ViewMode), nameof(IsGrid), nameof(IsLoupe) }) Notify(name);
+        foreach (var name in new[] { nameof(ShowFilmstrip), nameof(FilmstripHeight), nameof(FilmstripRowHeight), nameof(FilmThumbHeight), nameof(FilmThumbWidth), nameof(ThumbnailSize), nameof(ThumbnailHeight), nameof(TileWidth), nameof(TileHeight), nameof(PreviewMaxEdge), nameof(FullResolutionOnZoom), nameof(ZoomStepPercent), nameof(ClickZoomPercent), nameof(OverlayDurationMs), nameof(OverlayPosition), nameof(DefaultView), nameof(StartWithPanelsHidden), nameof(HistogramEnabled), nameof(HelpShortcut), nameof(ZenShortcut), nameof(UndoShortcut), nameof(ResetZoomShortcut), nameof(GridShortcut), nameof(LoupeShortcut), nameof(ViewMode), nameof(IsGrid), nameof(IsLoupe) }) Notify(name);
         _ = LoadCurrentPreviewAsync(force: true);
         SavePreferences(); Status = "Restored the default Photo Review settings.";
     }
@@ -381,7 +412,7 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
         PushUndo(targets, "color label change");
         foreach (var photo in targets) photo.ColorLabel = targetColor;
         Persist(targets);
-        ShowOverlay(WithCount(targetColor switch { ReviewColor.Red => "RED LABEL", ReviewColor.Yellow => "YELLOW LABEL", ReviewColor.Green => "GREEN LABEL", ReviewColor.Blue => "BLUE LABEL", _ => "COLOR LABEL CLEARED" }, targets.Length));
+        ShowOverlay(WithCount(targetColor switch { ReviewColor.Red => "RED LABEL", ReviewColor.Yellow => "YELLOW LABEL", ReviewColor.Green => "GREEN LABEL", ReviewColor.Blue => "BLUE LABEL", ReviewColor.Purple => "PURPLE LABEL", _ => "COLOR LABEL CLEARED" }, targets.Length));
     }
     public double Zoom { get => _zoom; private set { if (Set(ref _zoom, Math.Clamp(value, 0.25, 8))) Notify(nameof(ZoomLabel)); } }
     public double PanX { get => _panX; private set => Set(ref _panX, Math.Clamp(value, -10000, 10000)); }
@@ -617,7 +648,7 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
         1 => photo.Flag == ReviewFlag.Pick, 2 => photo.Rating >= 1, 3 => photo.Rating >= 3,
         4 => photo.Rating == 5, 5 => photo.Flag == ReviewFlag.Reject, 6 => photo.Rating == 0,
         7 => photo.ColorLabel == ReviewColor.Red, 8 => photo.ColorLabel == ReviewColor.Yellow,
-        9 => photo.ColorLabel == ReviewColor.Green, 10 => photo.ColorLabel == ReviewColor.Blue, _ => true
+        9 => photo.ColorLabel == ReviewColor.Green, 10 => photo.ColorLabel == ReviewColor.Blue, 11 => photo.ColorLabel == ReviewColor.Purple, _ => true
     };
     private async Task LoadCurrentPreviewAsync(bool force = false)
     {
@@ -710,7 +741,7 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     }
     private void NotifyCurrent()
     {
-        foreach (var name in new[] { nameof(CurrentPosition), nameof(PositionLabel), nameof(RatingStars), nameof(CurrentName), nameof(CurrentPath), nameof(CurrentDetails) }) Notify(name);
+        foreach (var name in new[] { nameof(DisplayRating), nameof(CurrentPosition), nameof(PositionLabel), nameof(RatingStars), nameof(CurrentName), nameof(CurrentPath), nameof(CurrentDetails) }) Notify(name);
         RefreshCommands();
     }
     private void NotifyCounts()

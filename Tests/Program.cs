@@ -333,6 +333,20 @@ internal static class Program
         reviewVm.CurrentPhoto = reviewVm.Photos.Single(p => p.Name == "IMG_2.JPG");
         reviewVm.SetRating(4); reviewVm.SetFlag(ReviewFlag.Pick); reviewVm.SetColor(ReviewColor.Red);
         Check(reviewVm.CurrentPhoto.Rating == 4 && reviewVm.PickCount == 1 && reviewVm.ColorCount == 1 && File.Exists(catalogPath), "Review shortcuts store rating, Pick and color label immediately");
+        reviewVm.CopySourceFolder(); reviewVm.OpenSourceFolder();
+        Check(reviewDialogs.ClipboardText == reviewRoot && reviewDialogs.OpenedFolder == reviewRoot, "Source folder actions copy and open the imported folder");
+        var ratedBeforeHover = reviewVm.CurrentPhoto.Rating;
+        reviewVm.PreviewRating(2);
+        Check(reviewVm.DisplayRating == 2 && reviewVm.CurrentPhoto.Rating == ratedBeforeHover, "Hover previews the star count without changing the saved rating");
+        reviewVm.PreviewRating(null);
+        Check(reviewVm.DisplayRating == ratedBeforeHover, "Leaving the stars restores the actual rating display");
+        reviewVm.SetColor(ReviewColor.Purple);
+        Check(new ReviewCatalogService(catalogPath).Get(reviewVm.CurrentPhoto.FullPath)?.ColorLabel == ReviewColor.Purple && reviewVm.CurrentPhoto.ColorHex == "#AC78D1", "Purple label persists in the catalog with a distinct tile color");
+        reviewVm.FilterIndex = 11;
+        Check(reviewVm.FilteredPhotos.Count == 1 && reviewVm.CurrentPhoto.ColorLabel == ReviewColor.Purple, "Purple filter displays matching photos");
+        reviewVm.FilterIndex = 0; reviewVm.Undo();
+        Check(reviewVm.Photos.Single(p => p.Name == "IMG_2.JPG").ColorLabel == ReviewColor.Red, "Undo restores the color before Purple was applied");
+        reviewVm.CurrentPhoto = reviewVm.Photos.Single(p => p.Name == "IMG_2.JPG");
         reviewVm.FilterIndex = 1;
         Check(reviewVm.FilteredPhotos.Count == 1 && reviewVm.FilteredPhotos[0].Name == "IMG_2.JPG", "Review filter shows Pick photos");
         reviewVm.FilterIndex = 3;
@@ -392,10 +406,18 @@ internal static class Program
         using (var preferencesVm = new ReviewViewModel(reviewDialogs, new ReviewCatalogService(Path.Combine(_root, "preferences-catalog.json")), new ReviewSessionService(Path.Combine(_root, "preferences-session.json")), new ReviewPreferencesService(preferencesPath)))
         {
             preferencesVm.PreviewMaxEdge = 2400; preferencesVm.ZoomStepPercent = 50; preferencesVm.ClickZoomPercent = 300; preferencesVm.OverlayPosition = 1;
+            preferencesVm.ShowFilmstrip = false; preferencesVm.FilmstripHeight = 200; preferencesVm.SaveFilmstripSize();
             preferencesVm.HelpShortcut = "Ctrl+H"; preferencesVm.ZenShortcut = "F"; preferencesVm.ResetZoomShortcut = "Ctrl+0";
         }
         using (var restoredPreferences = new ReviewViewModel(reviewDialogs, new ReviewCatalogService(Path.Combine(_root, "preferences-catalog-2.json")), new ReviewSessionService(Path.Combine(_root, "preferences-session-2.json")), new ReviewPreferencesService(preferencesPath)))
-            Check(restoredPreferences.PreviewMaxEdge == 2400 && restoredPreferences.ZoomStepPercent == 50 && restoredPreferences.ClickZoomPercent == 300 && restoredPreferences.OverlayPosition == 1 && restoredPreferences.HelpShortcut == "Ctrl+H" && restoredPreferences.ZenShortcut == "F" && restoredPreferences.ResetZoomShortcut == "Ctrl+0", "Custom review display and shortcut preferences persist");
+            Check(restoredPreferences.PreviewMaxEdge == 2400 && restoredPreferences.ZoomStepPercent == 50 && restoredPreferences.ClickZoomPercent == 300 && restoredPreferences.OverlayPosition == 1 && restoredPreferences.HelpShortcut == "Ctrl+H" && restoredPreferences.ZenShortcut == "F" && restoredPreferences.ResetZoomShortcut == "Ctrl+0", "Custom review display and shortcut preferences persist"); 
+        using (var displayPreferences = new ReviewViewModel(reviewDialogs, new ReviewCatalogService(Path.Combine(_root, "display-catalog.json")), new ReviewSessionService(Path.Combine(_root, "display-session.json")), new ReviewPreferencesService(preferencesPath)))
+        {
+            Check(!displayPreferences.ShowFilmstrip && displayPreferences.FilmstripHeight == 200 && displayPreferences.FilmstripRowHeight == 0, "Filmstrip height and visibility survive preferences reload");
+            displayPreferences.ShowFilmstrip = true; displayPreferences.FilmstripHeight = 900;
+            Check(displayPreferences.FilmstripHeight == 260 && displayPreferences.FilmThumbHeight == 210, "Filmstrip resizing clamps its maximum and scales thumbnail geometry");
+        }
+
         var clearSessionPath = Path.Combine(_root, "clear-session.json");
         var clearCatalogPath = Path.Combine(_root, "clear-catalog.json");
         var clearDialogs = new FakeDialogs { ConfirmClearSession = true };
@@ -486,6 +508,20 @@ internal static class Program
         await Render(reviewWindow, Path.Combine(screenshot, "review-grid-large.png"));
         reviewVm.ThumbnailSize = 166;
         await Render(reviewWindow, Path.Combine(screenshot, "review-grid.png"));
+        var inspectorTabs = (System.Windows.Controls.TabControl)reviewWindow.FindName("InspectorTabs");
+        Check(inspectorTabs.Items.Count == 3, "Inspector organizes review, delivery and tools in three tabs");
+        inspectorTabs.SelectedIndex = 1;
+        await Render(reviewWindow, Path.Combine(screenshot, "review-deliver-tab.png"));
+        inspectorTabs.SelectedIndex = 2;
+        await Render(reviewWindow, Path.Combine(screenshot, "review-tools-tab.png"));
+        inspectorTabs.SelectedIndex = 0;
+        reviewVm.ShowFilmstrip = false;
+        await Render(reviewWindow, Path.Combine(screenshot, "review-no-filmstrip.png"));
+        Check(((System.Windows.Controls.RowDefinition)reviewWindow.FindName("FilmstripRow")).Height.Value == 0 && ((FrameworkElement)reviewWindow.FindName("FilmstripPanel")).Visibility == Visibility.Collapsed, "Hiding filmstrip returns its complete height to the workspace");
+        reviewVm.ShowFilmstrip = true; reviewVm.FilmstripHeight = 210;
+        await Render(reviewWindow, Path.Combine(screenshot, "review-tall-filmstrip.png"));
+        reviewVm.FilmstripHeight = 124;
+
         reviewWindow.ShowHelpPopup();
         Check(((FrameworkElement)reviewWindow.FindName("HelpOverlay")).Visibility == Visibility.Visible, "F1 help is available as an in-window popup");
         await Render(reviewWindow, Path.Combine(screenshot, "review-help.png"));
@@ -640,7 +676,8 @@ internal static class Program
         public bool ConfirmCopy(int count, string source, string destination, string policy) { ConfirmedCount = count; return Confirm; }
         public bool ConfirmClearReviewSession() => ConfirmClearSession;
         public void ShowError(string message) => Errors.Add(message);
-        public void OpenFolder(string path) { }
+        public string OpenedFolder { get; private set; } = "";
+        public void OpenFolder(string path) => OpenedFolder = path;
         public void CopyText(string text) => ClipboardText = text;
         public void RevealFile(string path) => RevealedPath = path;
         public void ShowPreview(PhotoFile file) => PreviewedPath = file.FullPath;

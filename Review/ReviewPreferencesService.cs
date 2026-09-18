@@ -19,7 +19,9 @@ public sealed record ReviewPreferences(
     string LoupeShortcut = "E",
     int ClickZoomPercent = 200,
     bool FullResolutionOnZoom = true,
-    int ThumbnailSize = 166);
+    int ThumbnailSize = 166,
+    bool ShowFilmstrip = true,
+    int FilmstripHeight = 124);
 
 public sealed class ReviewPreferencesService(string? filePath = null)
 {
