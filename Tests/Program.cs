@@ -188,6 +188,9 @@ internal static class Program
         var beforeChange = rawResult.Image;
         File.SetLastWriteTimeUtc(previewPath, DateTime.UtcNow.AddMinutes(1));
         Check(!ReferenceEquals(beforeChange, previewService.Load(rawPreviewPath, default).Image), "Changing a companion JPG invalidates its RAW preview cache");
+        var retainedPreview = previewService.Load(previewPath, default);
+        previewService.ClearCache();
+        Check(!ReferenceEquals(retainedPreview.Image, previewService.Load(previewPath, default).Image), "Release preview memory clears retained Loupe images");
         var evicting = new PreviewService(cacheCapacity: 1);
         var firstCached = evicting.Load(previewPath, default);
         evicting.Load(portraitPath, default);

@@ -16,7 +16,7 @@ Duyệt tay: Ctrl+1/2, F5, Ctrl+O, Esc, F1; chuyển qua lại khi scan/copy; đ
 
 Cache preview LRU có giới hạn số ảnh và byte, kiểm tra thay đổi file và chất lượng decode.
 Lập chỉ mục JPG cùng tên theo thư mục thay cho quét lại ở từng ảnh RAW.
-Kiểm chứng: 172 checks; cache tối đa 5 ảnh / 192 MiB (ước tính bộ nhớ bitmap), index tối đa 16 thư mục, TTL 2 giây. Không cache kết quả lỗi. Không phải giới hạn tổng RAM của app hay benchmark thư mục 8.000 ảnh.
+Kiểm chứng: 173 checks; cache tối đa 5 ảnh / 192 MiB (ước tính bộ nhớ bitmap), index tối đa 16 thư mục, TTL 2 giây. Không cache kết quả lỗi. Không phải giới hạn tổng RAM của app hay benchmark thư mục 8.000 ảnh.
 Duyệt tay: qua lại ảnh lớn, đổi chất lượng, sửa/xóa JPG đồng hành, thư mục trên ổ ngoài.
 
 ## Phase 3 — codex/phase-3-copy-feedback

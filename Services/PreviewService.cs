@@ -9,15 +9,23 @@ public record PreviewResult(BitmapSource? Image, string Description);
 public sealed class PreviewService
 {
     private static readonly HashSet<string> Raster = new(StringComparer.OrdinalIgnoreCase) { ".jpg", ".jpeg", ".png", ".tif", ".tiff", ".heic" };
-    private readonly PreviewCache _cache;
+    private PreviewCache _cache;
+    private readonly int _cacheCapacity;
+    private readonly long _cacheByteLimit;
     private readonly JpegCompanionIndex _companions = new();
 
     public PreviewService(int cacheCapacity = 5, long cacheByteLimit = 192L * 1024 * 1024)
-        => _cache = new(cacheCapacity, Math.Max(0, cacheByteLimit));
+    {
+        _cacheCapacity = cacheCapacity; _cacheByteLimit = Math.Max(0, cacheByteLimit);
+        _cache = new(_cacheCapacity, _cacheByteLimit);
+    }
+
+    public void ClearCache() => Interlocked.Exchange(ref _cache, new PreviewCache(_cacheCapacity, _cacheByteLimit));
 
     public PreviewResult Load(string path, CancellationToken token, int maxEdge = 1400)
     {
         token.ThrowIfCancellationRequested();
+        var cache = Volatile.Read(ref _cache);
         string[] companions = [];
         if (!Raster.Contains(Path.GetExtension(path)))
         {
@@ -26,10 +34,10 @@ public sealed class PreviewService
         }
         // Thumbnail loading must not evict the recent Loupe images.
         var key = maxEdge is > 0 and <= 320 ? null : CacheKey(path, companions, maxEdge);
-        if (key != null && _cache.Get(key) is { } cached) return cached;
+        if (key != null && cache.Get(key) is { } cached) return cached;
         var result = LoadUncached(path, companions, token, maxEdge);
         token.ThrowIfCancellationRequested();
-        if (key != null && key == CacheKey(path, companions, maxEdge)) _cache.Add(key, result);
+        if (key != null && key == CacheKey(path, companions, maxEdge)) cache.Add(key, result);
         return result;
     }
 

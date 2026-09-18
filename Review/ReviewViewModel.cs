@@ -502,6 +502,7 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     private void ClearPreviewCache()
     {
         _previewCancellation?.Cancel(); _requestedPreviewEdge = null; IsPreviewLoading = false;
+        _preview.ClearCache();
         Zoom = 1; ResetPan(); PreviewImage = null; HistogramImage = null; HistogramSummary = "No histogram data"; HistogramAssessment = "Preview memory released."; PreviewMessage = "Preview memory released. Select a photo to load it again.";
         foreach (var photo in Photos) photo.Thumbnail = null;
         GC.Collect(GC.MaxGeneration, GCCollectionMode.Optimized, false);
@@ -515,6 +516,7 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
         try
         {
             _sessionSaveCancellation?.Cancel(); _previewCancellation?.Cancel();
+            _preview.ClearCache();
             PreviewImage = null; CurrentPhoto = null; FilteredPhotos.Clear(); Photos.Clear();
             _undo.Clear(); UndoCommand.Refresh();
             _sourceInputs = []; Folder = ""; _filterIndex = 0; _viewMode = 0;
@@ -678,6 +680,7 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     {
         if (_disposed) return;
         SaveSessionNow(); _disposed = true;
+        _preview.ClearCache();
         _importCancellation?.Cancel(); _previewCancellation?.Cancel(); _sessionSaveCancellation?.Cancel(); _overlayCancellation?.Cancel();
         _importCancellation?.Dispose(); _previewCancellation?.Dispose(); _sessionSaveCancellation?.Dispose(); _overlayCancellation?.Dispose();
     }
