@@ -51,7 +51,7 @@ public sealed class MainViewModel : ObservableObject
         CopyMissingCommand = new(() => Guard(() => { _dialogs.CopyText(string.Join(Environment.NewLine, Missing)); Status = "Copied missing names"; Detail = $"{MissingCount:N0} missing names were copied to the clipboard."; }), () => !Busy && MissingCount > 0);
         CopyPathCommand = new(() => Guard(() => _dialogs.CopyText(SelectedFile!.FullPath)), () => SelectedFile != null);
         RevealFileCommand = new(() => Guard(() => _dialogs.RevealFile(SelectedFile!.FullPath)), () => SelectedFile != null);
-        PreviewCommand = new(() => Guard(() => _dialogs.ShowPreview(SelectedFile!)), () => !Busy && SelectedFile != null);
+        PreviewCommand = new(() => Guard(() => _dialogs.ShowPreview(SelectedFile!, VisibleFiles.ToArray())), () => !Busy && SelectedFile != null);
         ToggleIncludedCommand = new(() => SelectedFile!.IncludeInCopy = !SelectedFile.IncludeInCopy, () => !Busy && SelectedFile != null);
         IncludeAllCommand = new(() =>
         {

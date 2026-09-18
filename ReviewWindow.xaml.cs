@@ -16,6 +16,7 @@ public partial class ReviewWindow : Window
     private Point? _panStart;
     private Point _panOrigin;
     private bool _isPanning;
+    private Grid? _panViewport;
     private bool _zenMode;
     private bool _languageReady;
     private GridLength _navigatorWidth = new(240), _ratingWidth = new(255);
@@ -87,6 +88,12 @@ public partial class ReviewWindow : Window
             return;
         }
         if (e.OriginalSource is TextBox or ComboBox) return;
+        if (e.Key == Key.Space && Keyboard.Modifiers == ModifierKeys.None)
+        {
+            if (!e.IsRepeat) _viewModel.ViewMode = _viewModel.IsGrid ? 1 : 0;
+            e.Handled = true;
+            return;
+        }
         if (MatchesShortcut(e, _viewModel.UndoShortcut)) { _viewModel.Undo(); e.Handled = true; return; }
         if (control && e.Key == Key.OemOpenBrackets) { _viewModel.Rotate(ReviewTargets(), -90); e.Handled = true; return; }
         if (control && e.Key == Key.OemCloseBrackets) { _viewModel.Rotate(ReviewTargets(), 90); e.Handled = true; return; }
@@ -116,7 +123,6 @@ public partial class ReviewWindow : Window
             case Key.P: _viewModel.SetFlag(ReviewTargets(), ReviewFlag.Pick); break;
             case Key.X: _viewModel.SetFlag(ReviewTargets(), ReviewFlag.Reject); break;
             case Key.U: _viewModel.SetFlag(ReviewTargets(), ReviewFlag.None); break;
-            case Key.Space: _viewModel.ViewMode = _viewModel.ViewMode == 0 ? 1 : 0; break;
             default: return;
         }
         e.Handled = true;
@@ -136,21 +142,24 @@ public partial class ReviewWindow : Window
     private void OnResetZoom(object sender, RoutedEventArgs e) => _viewModel.ResetZoom();
     private void OnLoupeMouseWheel(object sender, MouseWheelEventArgs e)
     {
-        var pointer = e.GetPosition(LoupeViewport);
-        _viewModel.ZoomAt(e.Delta > 0 ? 1 : -1, pointer.X - LoupeViewport.ActualWidth / 2, pointer.Y - LoupeViewport.ActualHeight / 2);
+        if (sender is not Grid viewport) return;
+        var pointer = e.GetPosition(viewport);
+        _viewModel.ZoomAt(e.Delta > 0 ? 1 : -1, pointer.X - viewport.ActualWidth / 2, pointer.Y - viewport.ActualHeight / 2);
         e.Handled = true;
     }
     private void OnLoupeMouseDown(object sender, MouseButtonEventArgs e)
     {
         if (e.ChangedButton != MouseButton.Left || !_viewModel.HasPreview || IsInsideButton(e.OriginalSource as DependencyObject)) return;
-        _panStart = e.GetPosition(LoupeViewport); _panOrigin = new(_viewModel.PanX, _viewModel.PanY);
+        if (sender is not Grid viewport) return;
+        _panViewport = viewport;
+        _panStart = e.GetPosition(viewport); _panOrigin = new(_viewModel.PanX, _viewModel.PanY);
         _isPanning = false;
-        LoupeViewport.CaptureMouse(); LoupeViewport.Cursor = _viewModel.Zoom > 1 ? Cursors.SizeAll : Cursors.Hand; e.Handled = true;
+        viewport.CaptureMouse(); viewport.Cursor = _viewModel.Zoom > 1 ? Cursors.SizeAll : Cursors.Hand; e.Handled = true;
     }
     private void OnLoupeMouseMove(object sender, MouseEventArgs e)
     {
-        if (_panStart is not { } start || e.LeftButton != MouseButtonState.Pressed) return;
-        var current = e.GetPosition(LoupeViewport);
+        if (_panViewport == null || _panStart is not { } start || e.LeftButton != MouseButtonState.Pressed) return;
+        var current = e.GetPosition(_panViewport);
         if (!_isPanning && Math.Abs(current.X - start.X) + Math.Abs(current.Y - start.Y) < 5) return;
         if (_viewModel.Zoom <= 1) return;
         _isPanning = true;
@@ -159,17 +168,17 @@ public partial class ReviewWindow : Window
     }
     private void OnLoupeMouseUp(object sender, MouseButtonEventArgs e)
     {
-        if (_panStart is not { } start) return;
+        if (_panViewport is not { } viewport || _panStart is not { } start) return;
         var wasPanning = _isPanning;
-        _panStart = null; _isPanning = false; LoupeViewport.ReleaseMouseCapture(); LoupeViewport.Cursor = Cursors.Arrow;
+        _panStart = null; _isPanning = false; viewport.ReleaseMouseCapture(); viewport.Cursor = Cursors.Arrow;
         if (!wasPanning)
         {
             if (_viewModel.Zoom > 1) _viewModel.ResetZoom();
-            else _viewModel.ZoomTo(_viewModel.ClickZoomPercent / 100d, start.X - LoupeViewport.ActualWidth / 2, start.Y - LoupeViewport.ActualHeight / 2);
+            else _viewModel.ZoomTo(_viewModel.ClickZoomPercent / 100d, start.X - viewport.ActualWidth / 2, start.Y - viewport.ActualHeight / 2);
         }
         e.Handled = true;
     }
-    private void OnLoupeLostMouseCapture(object sender, MouseEventArgs e) { _panStart = null; _isPanning = false; LoupeViewport.Cursor = Cursors.Arrow; }
+    private void OnLoupeLostMouseCapture(object sender, MouseEventArgs e) { _panStart = null; _isPanning = false; if (_panViewport != null) _panViewport.Cursor = Cursors.Arrow; _panViewport = null; }
     private static bool IsInsideButton(DependencyObject? element)
     {
         while (element != null)
@@ -183,7 +192,7 @@ public partial class ReviewWindow : Window
     private void OnGridSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         _viewModel.UpdateSelectionCount(GridPhotos.SelectedItems.Count);
-        if (GridPhotos.SelectedItem != null) GridPhotos.ScrollIntoView(GridPhotos.SelectedItem);
+        if (e.AddedItems.Count > 0) GridPhotos.ScrollIntoView(e.AddedItems[e.AddedItems.Count - 1]);
     }
     private void OnGridRightClick(object sender, MouseButtonEventArgs e)
     {

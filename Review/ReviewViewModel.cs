@@ -152,7 +152,16 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     public string GridShortcut { get => _gridShortcut; set { if (Set(ref _gridShortcut, Choice(value, GridShortcutOptions, "G"))) SavePreferences(); } }
     public string LoupeShortcut { get => _loupeShortcut; set { if (Set(ref _loupeShortcut, Choice(value, LoupeShortcutOptions, "E"))) SavePreferences(); } }
     public int FilterIndex { get => _filterIndex; set { if (Set(ref _filterIndex, Math.Clamp(value, 0, Filters.Length - 1))) { ApplyFilter(); QueueSessionSave(); } } }
-    public int ViewMode { get => _viewMode; set { if (Set(ref _viewMode, Math.Clamp(value, 0, 1))) { Notify(nameof(IsGrid)); Notify(nameof(IsLoupe)); QueueSessionSave(); _ = LoadCurrentPreviewAsync(); } } }
+    public int ViewMode
+    {
+        get => _viewMode;
+        set
+        {
+            if (!Set(ref _viewMode, Math.Clamp(value, 0, 1))) return;
+            Notify(nameof(IsGrid)); Notify(nameof(IsLoupe));
+            QueueSessionSave(); _ = LoadCurrentPreviewAsync();
+        }
+    }
     public int ExportPolicy { get => _exportPolicy; set { if (Set(ref _exportPolicy, Math.Clamp(value, 0, ExportPolicies.Length - 1))) QueueSessionSave(); } }
     private int _thumbnailSize = 166;
     public int ThumbnailSize
@@ -230,6 +239,7 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     {
         if (Busy) return;
         _importCancellation?.Cancel(); _importCancellation?.Dispose(); _importCancellation = new();
+        _thumbnailOrder.Clear();
         Busy = true; Status = "Importing photos…"; PreviewImage = null; CurrentPhoto = null;
         var token = _importCancellation.Token;
         try
@@ -725,6 +735,7 @@ public sealed class ReviewViewModel : ObservableObject, IDisposable
     {
         if (_disposed) return;
         SaveSessionNow(); _disposed = true;
+        _thumbnailOrder.Clear();
         _preview.ClearCache();
         _importCancellation?.Cancel(); _previewCancellation?.Cancel(); _sessionSaveCancellation?.Cancel(); _overlayCancellation?.Cancel();
         _importCancellation?.Dispose(); _previewCancellation?.Dispose(); _sessionSaveCancellation?.Dispose(); _overlayCancellation?.Dispose();

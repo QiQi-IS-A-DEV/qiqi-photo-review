@@ -169,6 +169,7 @@ internal static class Program
         vm.SelectedFile = vm.Files[0];
         vm.CopyPathCommand.Execute(null); vm.RevealFileCommand.Execute(null); vm.PreviewCommand.Execute(null);
         Check(dialogs.ClipboardText == vm.SelectedFile.FullPath && dialogs.RevealedPath == vm.SelectedFile.FullPath && dialogs.PreviewedPath == vm.SelectedFile.FullPath, "Row actions target the selected file");
+        Check(dialogs.PreviewedList.SequenceEqual(vm.VisibleFiles), "TXT Quick Preview receives the current visible result order");
         vm.ToggleIncludedCommand.Execute(null);
         Check(vm.CopyCount == 4 && vm.MatchedCount == 5 && vm.CopyLabel.Contains("4"), "Exclusion updates copy count without changing scan totals");
         vm.OutputFolder = Path.Combine(_root, "subset-output");
@@ -470,8 +471,37 @@ internal static class Program
         var previewDeadline = DateTime.UtcNow.AddSeconds(5);
         while (((System.Windows.Controls.Image)previewWindow.FindName("PreviewImage")).Source == null && DateTime.UtcNow < previewDeadline) await Task.Delay(30);
         Check(((System.Windows.Controls.Image)previewWindow.FindName("PreviewImage")).Source != null, "Preview window loads and displays its image asynchronously");
+        var nextPreviewInfo = new FileInfo(previewPath);
+        var nextPreviewFile = new PhotoFile(previewPath, "IMG_700.JPG", "IMG_700.JPG", nextPreviewInfo.Length, nextPreviewInfo.LastWriteTimeUtc);
+        var firstPreviewFile = previewWindow.CurrentFile;
+        var originalPreviewBytes = File.ReadAllBytes(firstPreviewFile.FullPath);
+        previewWindow.SetFiles(firstPreviewFile, [firstPreviewFile, nextPreviewFile]);
+        previewWindow.Navigate(1);
+        await WaitUntil(() => ((System.Windows.Controls.TextBlock)previewWindow.FindName("PreviewDescription")).Text.Contains("IMG_700.JPG"), "next quick preview");
+        Check(previewWindow.CurrentFile == nextPreviewFile && ((System.Windows.Controls.TextBlock)previewWindow.FindName("PositionText")).Text == "2 / 2", "Quick Preview navigates the provided result list without reopening a window");
+        previewWindow.ZoomBy(1); previewWindow.RotatePreview();
+        Check(previewWindow.Zoom > 1 && previewWindow.Rotation == 90, "Quick Preview supports zoom and display rotation");
+        Check(File.ReadAllBytes(firstPreviewFile.FullPath).SequenceEqual(originalPreviewBytes), "Quick Preview rotation does not modify original photo bytes");
+        previewWindow.Navigate(-1);
+        Check(previewWindow.Zoom == 1 && previewWindow.Rotation == 0, "Navigating Quick Preview resets the previous photo transforms");
+        previewWindow.Navigate(1); previewWindow.Navigate(-1);
+        await WaitUntil(() => ((System.Windows.Controls.TextBlock)previewWindow.FindName("PreviewDescription")).Text.Contains("portrait.jpg"), "latest quick preview decode");
+        Check(((System.Windows.Controls.Image)previewWindow.FindName("PreviewImage")).Source is BitmapSource { PixelWidth: 24, PixelHeight: 32 }, "Quick Preview discards stale decodes after rapid navigation");
         await Render(previewWindow, Path.Combine(screenshot, "preview.png"));
-        previewWindow.Close();
+        previewWindow.Width = 620; previewWindow.Height = 420;
+        await Render(previewWindow, Path.Combine(screenshot, "preview-compact.png"));
+        previewWindow.Navigate(1); previewWindow.Close();
+        await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+        var previousMainWindow = Application.Current.MainWindow;
+        var previewHost = new Window { Width = 300, Height = 200, WindowStartupLocation = WindowStartupLocation.Manual, Left = -20000, Top = -20000, ShowInTaskbar = false, ShowActivated = false };
+        previewHost.Show(); Application.Current.MainWindow = previewHost;
+        var realPreviewDialogs = new DialogService();
+        realPreviewDialogs.ShowPreview(firstPreviewFile, [firstPreviewFile, nextPreviewFile]);
+        var modelessPreview = Application.Current.Windows.OfType<PreviewWindow>().Single();
+        Check(previewHost.IsEnabled && modelessPreview.IsVisible, "Quick Preview opens modelessly and keeps its owner enabled");
+        realPreviewDialogs.ShowPreview(nextPreviewFile, [firstPreviewFile, nextPreviewFile]);
+        Check(Application.Current.Windows.OfType<PreviewWindow>().Count() == 1 && modelessPreview.CurrentFile == nextPreviewFile, "Repeated preview actions reuse one window and refresh its result snapshot");
+        modelessPreview.Close(); previewHost.Close(); Application.Current.MainWindow = previousMainWindow;
         reviewVm.FilterIndex = 0;
         reviewVm.ViewMode = 0;
         var reviewWindow = new ReviewWindow(reviewVm) { WindowStartupLocation = WindowStartupLocation.Manual, Left = -20000, Top = -20000, Width = 1360, Height = 820, ShowInTaskbar = false, ShowActivated = false };
@@ -501,6 +531,28 @@ internal static class Program
         typeof(ReviewWindow).GetMethod("HideSettingsPopup", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.Invoke(reviewWindow, null);
         reviewVm.ViewMode = 1;
         await Render(reviewWindow, Path.Combine(screenshot, "review-loupe.png"));
+        using (var shortcutSource = new System.Windows.Interop.HwndSource(new System.Windows.Interop.HwndSourceParameters("Review shortcut test") { Width = 0, Height = 0, WindowStyle = 0 }))
+        {
+            var keyHandler = typeof(ReviewWindow).GetMethod("OnReviewKeyDown", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+            void Press(System.Windows.Input.Key key, object source)
+            {
+                var args = new System.Windows.Input.KeyEventArgs(System.Windows.Input.Keyboard.PrimaryDevice, shortcutSource, 0, key)
+                { RoutedEvent = System.Windows.Input.Keyboard.PreviewKeyDownEvent, Source = source };
+                keyHandler.Invoke(reviewWindow, [reviewWindow, args]);
+            }
+            reviewVm.ViewMode = 0;
+            var selectedBeforeSpace = reviewVm.CurrentPhoto;
+            Press(System.Windows.Input.Key.Space, reviewWindow);
+            Check(reviewVm.IsLoupe && reviewVm.CurrentPhoto == selectedBeforeSpace, "Space switches Grid to Loupe and preserves the selected photo");
+            Press(System.Windows.Input.Key.Space, reviewWindow);
+            Check(reviewVm.IsGrid && reviewVm.CurrentPhoto == selectedBeforeSpace, "Space switches Loupe back to Grid and preserves the selected photo");
+            Press(System.Windows.Input.Key.C, reviewWindow);
+            Check(reviewVm.IsGrid && reviewWindow.FindName("CompareViewport") == null, "C no longer opens Compare and its workspace is removed");
+            Press(System.Windows.Input.Key.Space, new System.Windows.Controls.TextBox());
+            Check(reviewVm.IsGrid, "Space remains available for typing in a Review text field");
+            reviewVm.ViewMode = 2;
+            Check(reviewVm.IsLoupe, "Legacy Compare mode normalizes to Loupe");
+        }
         typeof(ReviewWindow).GetMethod("OnSendFilteredToFilter", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.Invoke(reviewWindow, [reviewWindow, new RoutedEventArgs()]);
         var embeddedFilter = (FrameworkElement)((System.Windows.Controls.ContentControl)reviewWindow.FindName("FilterHost")).Content;
         var embeddedVm = (MainViewModel)embeddedFilter.DataContext;
@@ -627,6 +679,7 @@ internal static class Program
         public string ClipboardText { get; private set; } = "";
         public string RevealedPath { get; private set; } = "";
         public string PreviewedPath { get; private set; } = "";
+        public IReadOnlyList<PhotoFile> PreviewedList { get; private set; } = [];
         public int ConfirmedCount { get; private set; }
         public int SoundCount { get; private set; }
         public string[]? ReviewSources { get; set; }
@@ -644,6 +697,7 @@ internal static class Program
         public void CopyText(string text) => ClipboardText = text;
         public void RevealFile(string path) => RevealedPath = path;
         public void ShowPreview(PhotoFile file) => PreviewedPath = file.FullPath;
+        public void ShowPreview(PhotoFile file, IReadOnlyList<PhotoFile> files) { ShowPreview(file); PreviewedList = files; }
         public void PlayCompletionSound() => SoundCount++;
         public void OpenWindowsThumbnailCleanup() { }
     }

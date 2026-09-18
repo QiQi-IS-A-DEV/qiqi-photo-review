@@ -194,7 +194,22 @@ publish.ps1            Script đóng gói portable cho Windows x64
 
 ## Phiên bản hiện tại
 
-**1.22.0 — bản kiểm duyệt trên nhánh codex/phase-3-copy-feedback**
+**1.23.1 — bỏ Compare, khôi phục Space ở Review**
+
+- Loại bỏ nút, phím C và chế độ So sánh theo yêu cầu kiểm duyệt.
+- Space chuyển qua lại Grid ↔ Loupe, giữ ảnh đang chọn; giữ phím không chuyển liên tục.
+- Kéo chuột trong Loupe đã zoom để pan; không cần giữ Space.
+- Giữ grid virtualization, thanh Cỡ ảnh và Quick Preview TXT nâng cấp.
+
+**1.23.0 — bản kiểm duyệt phase 4–6**
+
+- Grid và filmstrip có virtualization; thanh Cỡ ảnh 100–400 px được lưu qua lần mở app.
+- Thumbnail tải theo ô xuất hiện, kể cả ảnh ngoài 120 mục đầu; giới hạn hàng đợi lưu thumbnail.
+- Bấm C / So sánh để ghim ảnh trái và duyệt ảnh phải; zoom/pan đồng bộ, ghim lại hoặc đổi hai bên.
+- Quick Preview TXT không khóa cửa sổ chính; ←/→ chuyển ảnh, con lăn zoom, kéo để pan, R xoay tạm thời, Esc đóng.
+- So sánh dùng tỷ lệ Fit cho từng ảnh, không phải pixel 1:1; ảnh ghim chưa lưu khi đóng app.
+
+**1.22.0 — bản kiểm duyệt trên nhánh phase-3-copy-feedback**
 
 - Tách TXT Filter thành UserControl, sở hữu phím tắt riêng khi nhúng trong Review.
 - Cache preview LRU tối đa 5 ảnh / 192 MiB ước tính và chỉ mục JPG đồng hành cho RAW.

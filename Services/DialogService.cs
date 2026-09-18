@@ -20,6 +20,7 @@ public interface IDialogService
     void CopyText(string text);
     void RevealFile(string path);
     void ShowPreview(PhotoFile file);
+    void ShowPreview(PhotoFile file, IReadOnlyList<PhotoFile> files) => ShowPreview(file);
     void PlayCompletionSound();
     void OpenWindowsThumbnailCleanup();
 }
@@ -79,7 +80,18 @@ public sealed class DialogService : IDialogService
         if (!System.IO.File.Exists(path)) throw new System.IO.FileNotFoundException("The file no longer exists. Please scan again.", path);
         Process.Start(new ProcessStartInfo("explorer.exe", $"/select,\"{path}\"") { UseShellExecute = true });
     }
-    public void ShowPreview(PhotoFile file) => new PreviewWindow(file) { Owner = Application.Current.MainWindow }.ShowDialog();
+    private PreviewWindow? _previewWindow;
+    public void ShowPreview(PhotoFile file) => ShowPreview(file, [file]);
+    public void ShowPreview(PhotoFile file, IReadOnlyList<PhotoFile> files)
+    {
+        if (_previewWindow == null)
+        {
+            _previewWindow = new PreviewWindow(file, files) { Owner = Application.Current.MainWindow };
+            _previewWindow.Closed += (_, _) => _previewWindow = null;
+            _previewWindow.Show();
+        }
+        else { _previewWindow.SetFiles(file, files); _previewWindow.Activate(); }
+    }
     public void PlayCompletionSound() { try { System.Media.SystemSounds.Asterisk.Play(); } catch (InvalidOperationException) { } }
     public void OpenWindowsThumbnailCleanup()
     {

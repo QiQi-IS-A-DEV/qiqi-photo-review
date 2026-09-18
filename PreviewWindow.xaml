@@ -1,11 +1,13 @@
 <Window x:Class="PhotoFileFilter.PreviewWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Photo Preview · QiQi Studio" Icon="Assets/qiqistudio.ico" Width="900" Height="680" MinWidth="520" MinHeight="420" WindowStartupLocation="CenterOwner"
-        Background="{DynamicResource Surface}" Foreground="{DynamicResource Ink}" FontFamily="Segoe UI" FontSize="13" KeyDown="OnPreviewKeyDown">
-    <Grid Margin="20">
-        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-        <DockPanel Margin="0,0,0,15"><Button DockPanel.Dock="Right" Content="Show in File Explorer ↗" Click="OnReveal"/><StackPanel><TextBlock x:Name="FileTitle" FontSize="18" FontWeight="SemiBold"/><TextBlock Text="Press Space or Esc to close" Style="{StaticResource Caption}" Margin="0,5,0,0"/></StackPanel></DockPanel>
-        <Border Grid.Row="1" Background="{DynamicResource C14232B}" CornerRadius="12" Padding="12"><Image x:Name="PreviewImage" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/></Border>
-        <TextBlock Grid.Row="2" x:Name="PreviewDescription" Text="Loading photo…" Margin="0,14,0,0" TextWrapping="Wrap"/>
+        Title="Photo Preview · QiQi Studio" Icon="Assets/qiqistudio.ico" Width="1000" Height="740" MinWidth="620" MinHeight="420" WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource Surface}" Foreground="{DynamicResource Ink}" FontFamily="Segoe UI" FontSize="13" PreviewKeyDown="OnPreviewKeyDown">
+    <Grid Margin="16">
+        <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+        <DockPanel Margin="0,0,0,12"><Button DockPanel.Dock="Right" Content="Show in File Explorer ↗" Click="OnReveal"/><StackPanel><TextBlock x:Name="FileTitle" FontSize="18" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/><TextBlock x:Name="PreviewHelp" Style="{StaticResource Caption}" Margin="0,5,0,0"/></StackPanel></DockPanel>
+        <WrapPanel Grid.Row="1" Margin="0,0,0,10"><Button x:Name="PreviousButton" Content="←" Click="OnPrevious" ToolTip="Previous photo"/><TextBlock x:Name="PositionText" VerticalAlignment="Center" Margin="10,0"/><Button x:Name="NextButton" Content="→" Click="OnNext" ToolTip="Next photo"/><Button Content="−" Click="OnZoomOut" Margin="16,0,0,0" ToolTip="Zoom out"/><TextBlock x:Name="ZoomText" VerticalAlignment="Center" Margin="10,0"/><Button Content="+" Click="OnZoomIn" ToolTip="Zoom in"/><Button x:Name="FitButton" Content="Fit" Click="OnFit" Margin="8,0,0,0"/><Button x:Name="RotateButton" Content="Rotate 90°" Click="OnRotate" Margin="8,0,0,0"/></WrapPanel>
+        <Grid Grid.Row="2" x:Name="ImageViewport" Background="{DynamicResource C14232B}" ClipToBounds="True" PreviewMouseWheel="OnWheel" MouseLeftButtonDown="OnPanDown" MouseMove="OnPanMove" MouseLeftButtonUp="OnPanUp" LostMouseCapture="OnLostCapture">
+            <Image x:Name="PreviewImage" Stretch="Uniform" Margin="12" RenderTransformOrigin="0.5,0.5" RenderOptions.BitmapScalingMode="HighQuality"><Image.LayoutTransform><RotateTransform x:Name="ImageRotation"/></Image.LayoutTransform><Image.RenderTransform><TransformGroup><ScaleTransform x:Name="ImageScale"/><TranslateTransform x:Name="ImagePan"/></TransformGroup></Image.RenderTransform></Image>
+        </Grid>
+        <TextBlock Grid.Row="3" x:Name="PreviewDescription" Text="Loading photo…" Margin="0,12,0,0" TextWrapping="Wrap"/>
     </Grid>
 </Window>
-
